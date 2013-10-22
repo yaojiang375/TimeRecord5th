@@ -5,7 +5,9 @@
 #-------------------------------------------------
 
 QT       += core gui
-
+QT       += xml
+QT       += network
+QT       += webkit
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = TimeRecord5th
@@ -13,8 +15,22 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+    readrecord.cpp \
+    form.cpp \
+    content_check.cpp \
+    smsreader.cpp \
+    GTDxml.cpp \
+    recordgetandpost.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += \
+    readrecord.h \
+    form.h \
+    globe.h \
+    content_check.h \
+    smsreader.h \
+    GTDxml.h \
+    recordgetandpost.h
 
-FORMS    += mainwindow.ui
+FORMS    += \
+    readrecord.ui \
+    form.ui
