@@ -5,8 +5,7 @@ RecordGetAndPost::RecordGetAndPost()
 {
     _ReciveRecord   *atp1;
     memset(SortByDate,NULL,sizeof(atp1)*RECORDLENGTH);
-    qDebug()<<NULL;
-    qDebug()<<SortByDate[1];
+
     ErrorList.clear();
 }
 
@@ -41,7 +40,7 @@ void RecordGetAndPost::RecordReadFromFile(globeset globe)
     {
         Day    = Node.firstChildElement("Day");
         i      = Day.attribute("DayNumber").toInt();
-        SortByDate[i]   = new EndRecordType;
+        SortByDate[i]   = new EndRecordType;//用于标记每一日期的排序状况，存在于日期记录结尾处。话说1000行以上的软件真需要一份文档啊。。。
         Flag   = Day.firstChildElement("Flag");
         CFlag  = Flag.firstChildElement("CompleteFlag");
         NFlag  = Flag.firstChildElement("NeedToFigure");
@@ -282,6 +281,8 @@ qDebug()<<test;
     return;
 
 }
+
+
 
 void RecordGetAndPost::RecordSave(globeset globe)
 {

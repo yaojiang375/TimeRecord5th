@@ -17,6 +17,7 @@ ReadRecord::ReadRecord(globeset *globek,QWidget *parent) :
     ui(new Ui::ReadRecord)
 {
     ui->setupUi(this);
+    ui->ShowRecordDB->hide();
     globe=globek;
 
     QTableWidget    *table=ui->tableWidget;
@@ -107,3 +108,20 @@ void ReadRecord::on_ShowButton_clicked()
 }
 
 
+
+void ReadRecord::on_AddToRecordDB_clicked()
+{
+    RecordGetAndPost a;
+    a.RecordReadFromFile(*globe);
+    a.RecordAdd(*globe);
+    a.RecordSave(*globe);
+    ui->ShowRecordDB->show();
+}
+
+void ReadRecord::on_ShowRecordDB_clicked()
+{
+
+    MainRecordDB *a =new MainRecordDB(globe);
+    a->show();
+    this->hide();
+}

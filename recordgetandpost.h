@@ -4,12 +4,14 @@
 #include <QFile>
 #include <QTextStream>
 #include <QString>
+#include <QtXml>
+
 #include <QVector>
 #include <QDateTime>
 
 #include <QtAlgorithms>
 
-#include <QtXml>
+
 #define RECORDLENGTH  100000
 
 /*******************

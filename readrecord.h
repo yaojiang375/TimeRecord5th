@@ -3,7 +3,8 @@
 #include "globe.h"
 #include "smsreader.h"
 #include <QWidget>
-
+#include "recordgetandpost.h"
+#include "mainrecorddb.h"
 namespace Ui {
 class ReadRecord;
 }
@@ -21,6 +22,10 @@ signals:
 private slots:
     void on_pushButton_clicked();
     void on_ShowButton_clicked();
+    void on_AddToRecordDB_clicked();
+
+    void on_ShowRecordDB_clicked();
+
 private:
     void insertTable();
     Ui::ReadRecord *ui;

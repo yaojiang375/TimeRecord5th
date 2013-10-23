@@ -20,7 +20,8 @@ SOURCES += main.cpp\
     content_check.cpp \
     smsreader.cpp \
     GTDxml.cpp \
-    recordgetandpost.cpp
+    recordgetandpost.cpp \
+    mainrecorddb.cpp
 
 HEADERS  += \
     readrecord.h \
@@ -29,8 +30,10 @@ HEADERS  += \
     content_check.h \
     smsreader.h \
     GTDxml.h \
-    recordgetandpost.h
+    recordgetandpost.h \
+    mainrecorddb.h
 
 FORMS    += \
     readrecord.ui \
-    form.ui
+    form.ui \
+    mainrecorddb.ui
