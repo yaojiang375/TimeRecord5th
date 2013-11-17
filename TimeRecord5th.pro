@@ -21,7 +21,10 @@ SOURCES += main.cpp\
     smsreader.cpp \
     GTDxml.cpp \
     recordgetandpost.cpp \
-    mainrecorddb.cpp
+    mainrecorddb.cpp \
+    sorttherecordnamelikedir.cpp \
+    treemodel.cpp \
+    treeitem.cpp
 
 HEADERS  += \
     readrecord.h \
@@ -31,9 +34,13 @@ HEADERS  += \
     smsreader.h \
     GTDxml.h \
     recordgetandpost.h \
-    mainrecorddb.h
+    mainrecorddb.h \
+    sorttherecordnamelikedir.h \
+    treemodel.h \
+    treeitem.h
 
 FORMS    += \
     readrecord.ui \
     form.ui \
-    mainrecorddb.ui
+    mainrecorddb.ui \
+    sorttherecordnamelikedir.ui

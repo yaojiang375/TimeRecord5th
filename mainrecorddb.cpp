@@ -1,5 +1,7 @@
 #include "mainrecorddb.h"
 #include "ui_mainrecorddb.h"
+
+#include "sorttherecordnamelikedir.h"
 #include <QStandardItemModel>
 MainRecordDB::MainRecordDB(globeset *globek,QWidget *parent) :
     QWidget(parent),
@@ -7,7 +9,12 @@ MainRecordDB::MainRecordDB(globeset *globek,QWidget *parent) :
 {
     ui->setupUi(this);
     globe = globek;
-    qDebug()<<"mainRecordDB is begin";
+    ui->treeView->setColumnWidth(0,100);//日期
+    ui->treeView->setColumnWidth(1,50);//时间
+    ui->treeView->setColumnWidth(2,100);//事项名
+    ui->treeView->setColumnWidth(3,80);//持续时长
+    ui->treeView->setColumnWidth(4,100);//事件备注
+    ui->treeView->setColumnWidth(5,50);//分类代号
 }
 
 MainRecordDB::~MainRecordDB()
@@ -17,12 +24,7 @@ MainRecordDB::~MainRecordDB()
 
 void MainRecordDB::on_ShowButton_clicked()
 {
-    ui->treeView->setColumnWidth(0,100);//日期
-    ui->treeView->setColumnWidth(1,50);//时间
-    ui->treeView->setColumnWidth(2,100);//事项名
-    ui->treeView->setColumnWidth(3,80);//持续时长
-    ui->treeView->setColumnWidth(4,100);//事件备注
-    ui->treeView->setColumnWidth(5,50);//分类代号
+
     QStandardItemModel    *Model = new QStandardItemModel(0,6);
     Model->setHeaderData(0, Qt::Horizontal, trUtf8("日期"));
     Model->setHeaderData(1, Qt::Horizontal, trUtf8("时间"));
@@ -30,6 +32,21 @@ void MainRecordDB::on_ShowButton_clicked()
     Model->setHeaderData(3, Qt::Horizontal, trUtf8("持续时长"));
     Model->setHeaderData(4, Qt::Horizontal, trUtf8("事件备注"));
     Model->setHeaderData(5, Qt::Horizontal, trUtf8("分类代号"));
+    /**************************************************
+     * <测试>
+     *************************************************/
+
+
+    ui->treeView->setDragEnabled(true);
+    ui->treeView->setDropIndicatorShown(true);
+    ui->treeView->viewport()->setAcceptDrops(true);
+    ui->treeView->setDragDropMode(QAbstractItemView::InternalMove);
+
+
+    /**************************************************
+     * </测试>
+     *************************************************/
+
 
 
     /**************************************************
@@ -38,14 +55,11 @@ void MainRecordDB::on_ShowButton_clicked()
 
     QFile wojiuluanqiminglezhadi(globe->RecordGetAndPost);
     wojiuluanqiminglezhadi.open(QIODevice::ReadOnly);
-
     QDomDocument    doc;
     doc.setContent(&wojiuluanqiminglezhadi);
     QDomElement     Day,Record,VarDate;
     Day    =        doc.firstChildElement("root");
-
     Day    =        Day.firstChildElement("Day");//对于为什么会有Day=0的情况心有疑问，但急着上厕所，就不先追究了&&
-
     Day    =        Day.nextSiblingElement("Day");
     int             RowCount=0;//记录行数
     QSize           RowSize;//利用QSize设定行高，应该有其他方法，第二版改进&&
@@ -82,8 +96,6 @@ void MainRecordDB::on_ShowButton_clicked()
         }
             RowCount++;
             Day      =     Day.nextSiblingElement("Day");
-
-
             Model->appendRow(ItemList);
     }
 
@@ -91,4 +103,11 @@ void MainRecordDB::on_ShowButton_clicked()
     /**************************************************
      * </xml大杀器，高能慎入>
      *************************************************/
+}
+
+void MainRecordDB::on_pushButton_clicked()
+{
+    SortTheRecordNameLikeDir   *kz= new SortTheRecordNameLikeDir(0);
+    kz->show();
+    //this->hide();
 }

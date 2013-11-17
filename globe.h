@@ -27,6 +27,7 @@ public:
     QString NameWithSortNumReturnRecordXmlPOS;
     QString RecordGetAndPost;
     QString GetAndPostPos;
+    QString SortTreePos;
 
     globeset()
     {
@@ -46,6 +47,7 @@ public:
         NameWithSortNumReturnRecordXmlPOS="c:/NameWithSortNumReturnRecordXmlPOS.xml";
         RecordGetAndPost="c:/RecordGetAndPost.xml";
         GetAndPostPos   ="c:/GetAndPost.xml";
+        SortTreePos        ="c:/SortTree.xml";
     }
     void read()
     {

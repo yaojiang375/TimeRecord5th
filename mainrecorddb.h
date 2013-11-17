@@ -29,6 +29,8 @@ public:
 private slots:
     void on_ShowButton_clicked();
 
+    void on_pushButton_clicked();
+
 private:
     Ui::MainRecordDB *ui;
     globeset *globe;

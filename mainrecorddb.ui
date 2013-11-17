@@ -16,14 +16,14 @@
   <widget class="QPushButton" name="ShowButton">
    <property name="geometry">
     <rect>
-     <x>270</x>
+     <x>100</x>
      <y>0</y>
      <width>121</width>
      <height>51</height>
     </rect>
    </property>
    <property name="text">
-    <string>显示</string>
+    <string>显示新加入记录</string>
    </property>
   </widget>
   <widget class="QTreeView" name="treeView">
@@ -34,6 +34,19 @@
      <width>691</width>
      <height>311</height>
     </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton">
+   <property name="geometry">
+    <rect>
+     <x>380</x>
+     <y>0</y>
+     <width>101</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>事件分类</string>
    </property>
   </widget>
  </widget>
