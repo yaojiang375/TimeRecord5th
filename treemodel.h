@@ -12,6 +12,7 @@
 #include <QModelIndex>
 #include <QVariant>
 #include <QtXml/qdom.h>
+#include <QMimeData>
 class TreeItem;
 
 //! [0]
@@ -52,7 +53,16 @@ public:
                     const QModelIndex &parent = QModelIndex());
     bool removeRows(int position, int rows,
                     const QModelIndex &parent = QModelIndex());
-
+/***********************
+ *拖放支持
+ ***********************/
+    Qt::DropActions supportedDropActions() const;
+    QStringList     mimeTypes() const;//&&存疑，可能需要更换
+    QMimeData       *mimeData(const QModelIndexList &indexes) const;
+    bool            dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent);
+/***********************
+*\拖放支持
+***********************/
 private:
     TreeItem *setupModelData( QDomElement &Node, TreeItem *parent);
     TreeItem *getItem(const QModelIndex &index) const;

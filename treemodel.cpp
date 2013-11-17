@@ -89,9 +89,9 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
 Qt::ItemFlags TreeModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
-        return 0;
+        return Qt::ItemIsEnabled|Qt::ItemIsDropEnabled;
 
-    return Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+    return QAbstractItemModel::flags(index)|Qt::ItemIsDragEnabled|Qt::ItemIsDropEnabled| Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsSelectable;
 }
 //! [3]
 
@@ -150,9 +150,13 @@ bool TreeModel::insertRows(int position, int rows, const QModelIndex &parent)
     bool success;
     QVector<QVariant> Data;
     Data<<" "<<" ";
-    TreeItem* Forinsert= new TreeItem(Data,parentItem);
+
     beginInsertRows(parent, position, position + rows - 1);
-    success = parentItem->insertChildren(position, rows, rootItem->columnCount(),Forinsert);
+    while(rows>0)
+    {
+    success &= parentItem->insertChildren(position,new TreeItem(Data,parentItem));
+    rows--;
+    }
     endInsertRows();
 
     return success;
@@ -200,12 +204,92 @@ bool TreeModel::removeRows(int position, int rows, const QModelIndex &parent)
     return success;
 }
 
+Qt::DropActions TreeModel::supportedDropActions() const
+{
+    return Qt::CopyAction|Qt::MoveAction;
+}
+
+QStringList TreeModel::mimeTypes() const
+{
+    QStringList types;
+    types<<"application/vnd.text.list";
+    return types;//&&待修改
+}
+
+QMimeData *TreeModel::mimeData(const QModelIndexList &indexes) const
+{
+    QMimeData *mimeData = new QMimeData();
+    QByteArray  encodeData;
+    QDataStream stream(&encodeData,QIODevice::WriteOnly);
+    foreach (const QModelIndex &index, indexes) {
+        if(index.isValid())
+        {
+            QString text=data(index,Qt::DisplayRole).toString();
+            stream<<text;
+        }
+    }
+    mimeData->setData("application/vnd.text.list",encodeData);
+    return mimeData;
+}
+
+bool TreeModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent)
+{
+    if (action==Qt::IgnoreAction)
+        return true;
+    if(!data->hasFormat("application/vnd.text.list"))
+        return false;
+    /***
+     *if(column>0)
+     *return false;
+     ***/
+    int beginrow;
+    if(row!=-1)
+    {
+        beginrow=row;
+    }
+    else
+    {
+        if(parent.isValid())
+        {
+            beginrow=parent.row();
+        }
+        else
+        {
+            beginrow=rowCount(QModelIndex());
+        }
+    }
+    QByteArray encodeData=data->data("application/vnd.text.list");
+    QDataStream stream(&encodeData,QIODevice::ReadOnly);
+    QStringList newItems;
+    int rows=0;
+    while(!stream.atEnd())
+    {
+        QString text;
+        stream>>text;
+        newItems<<text;
+        rows++;
+    }
+    insertRows(beginrow,rows,QModelIndex());
+    foreach (const QString &text, newItems) {
+        QModelIndex idx = index(beginrow,0,QModelIndex());
+        setData(idx,text);
+        beginrow++;
+    }
+    return true;
+}
+
 //! [8]
 int TreeModel::rowCount(const QModelIndex &parent) const
 {
     TreeItem *parentItem = getItem(parent);
-
+    if(parentItem!=NULL)
+    {
     return parentItem->childCount();
+    }
+    else
+    {
+        return 0;
+    }
 }
 //! [8]
 
@@ -250,7 +334,7 @@ TreeItem * TreeModel::setupModelData( QDomElement &Node, TreeItem *parent)
     QVector<QVariant> comment;
     comment<<Node.firstChildElement("Sort_ID").text()<<Node.firstChildElement("Quick_Num").text();
     TreeItem *child=new TreeItem(comment,parent);
-    parent->insertChildren(0,1,2,child);
+    parent->insertChildren(0,child);
     ChildNode=Node.firstChildElement("Node");
     if(!ChildNode.isNull())
     {

@@ -99,17 +99,22 @@ QVariant TreeItem::data(int column) const
 {
     return itemData.value(column);
 }
+
+QVector<QVariant> TreeItem::returnitemData()
+{
+    return itemData;
+}
 //! [6]
 
 //! [7]
-bool TreeItem::insertChildren(int position = 0, int count = 1, int columns=2, TreeItem *item=0)
+bool TreeItem::insertChildren(int position = 0, TreeItem *item=0)
 {
     if (position < 0 || position > childItems.size())
+    {
         return false;
-
-    for (int row = 0; row < count; ++row) {
-        childItems.insert(position, item);
     }
+        childItems.insert(position, item);
+
 
     return true;
 }
