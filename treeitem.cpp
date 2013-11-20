@@ -45,7 +45,7 @@
 */
 
 #include <QStringList>
-
+#include "QDebug"
 #include "treeitem.h"
 
 //! [0]
@@ -54,6 +54,20 @@ TreeItem::TreeItem(const QVector<QVariant> &data, TreeItem *parent)
     parentItem = parent;
     itemData = data;
 }
+
+TreeItem::TreeItem(QVector<QVariant> data, QList<TreeItem *> child, TreeItem *parent)
+{
+    this->childItems = child;
+    this->itemData   = data;
+    this->parentItem = parent;
+}
+
+
+
+
+
+
+
 //! [0]
 
 //! [1]
@@ -104,11 +118,23 @@ QVector<QVariant> TreeItem::returnitemData()
 {
     return itemData;
 }
+
+QList<TreeItem *> TreeItem::returnchildItem()
+{
+    return childItems;
+}
 //! [6]
 
 //! [7]
 bool TreeItem::insertChildren(int position = 0, TreeItem *item=0)
 {
+    qDebug()<<"Postion = "<<position;
+    qDebug()<<"size    = "<<childItems.size();
+    if(position>childItems.size())
+    {
+        position=childItems.size();//若超出范围，则在其最下边开始插入
+    }
+
     if (position < 0 || position > childItems.size())
     {
         return false;
@@ -150,8 +176,9 @@ bool TreeItem::removeChildren(int position, int count)
         return false;
 
     for (int row = 0; row < count; ++row)
+    {
         delete childItems.takeAt(position);
-
+    }
     return true;
 }
 //! [10]
@@ -171,12 +198,32 @@ bool TreeItem::removeColumns(int position, int columns)
 }
 
 //! [11]
-bool TreeItem::setData(int column, const QVariant &value)
+bool TreeItem::setData(int column, const QVector<QVariant> &value)
 {
-    if (column < 0 || column >= itemData.size())
+    qDebug()<<"itemdata.size="<<itemData.size();
+    qDebug()<<"Value.size = "<<value.size();
+    if (column < 0 || column > itemData.size())
         return false;
-
-    itemData[column] = value;
+    for(int i=0;i<column;i++)
+    {
+        itemData[i]=(value.at(i));
+    }
+    qDebug()<<"end of Value.size = "<<value.size();
+    qDebug()<<"end of setData and the data = "<<itemData;
     return true;
+}
+
+bool TreeItem::setparent(TreeItem *newparent)
+{
+    parentItem=newparent;
+    return true;
+}
+
+void TreeItem::TreeItem_copy(TreeItem item)
+{
+    this->childItems = item.returnchildItem();
+    this->itemData   = item.returnitemData();
+    this->parentItem = item.parent();
+    return;
 }
 //! [11]

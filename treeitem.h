@@ -56,6 +56,8 @@ class TreeItem
 {
 public:
     TreeItem(const QVector<QVariant> &data, TreeItem *parent = 0);
+    TreeItem(QVector<QVariant> data, QList<TreeItem*> child, TreeItem *parent );
+
     ~TreeItem();
 
     TreeItem *child(int number);
@@ -63,18 +65,22 @@ public:
     int columnCount() const;
     QVariant data(int column) const;
     QVector<QVariant> returnitemData();
+    QList<TreeItem*>  returnchildItem();
     bool insertChildren(int position, TreeItem *item);
     bool insertColumns(int position, int columns);
     TreeItem *parent();
     bool removeChildren(int position, int count);
     bool removeColumns(int position, int columns);
     int childNumber() const;
-    bool setData(int column, const QVariant &value);
+    bool setData(int column, const QVector<QVariant> &value);
+    bool setparent(TreeItem* newparent);
+    void TreeItem_copy(TreeItem item);
 
 private:
     QList<TreeItem*> childItems;
     QVector<QVariant> itemData;
     TreeItem *parentItem;
+
 };
 //! [0]
 

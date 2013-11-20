@@ -1,7 +1,7 @@
 #include "readrecord.h"
 #include <QApplication>
 #include <globe.h>
-#include "form.h"
+#include "sorttherecordnamelikedir.h"
 
 /*****************
  *测试
@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     /*Form b(&globe);
     b.show();
     */
-    MainRecordDB b(&globe);
-    b.show();
+    SortTheRecordNameLikeDir tk;
+    tk.show();
     return a.exec();
 }

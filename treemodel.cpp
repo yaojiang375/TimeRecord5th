@@ -54,6 +54,10 @@ TreeModel::TreeModel( QDomDocument &data,
     QDomElement Data=data.firstChildElement("root").firstChildElement("Node");
     //qDebug()<<Data.firstChildElement("Sort_ID").text();
     setupModelData(Data,rootItem);
+
+
+    Buf_cout=0;
+    memset(Buf_Parent_Point,BUF_LENGTH,sizeof(TreeItem*));
     return;
 }
 //! [0]
@@ -118,13 +122,17 @@ QVariant TreeModel::headerData(int section, Qt::Orientation orientation,
 //! [5]
 QModelIndex TreeModel::index(int row, int column, const QModelIndex &parent) const
 {
+
     if (parent.isValid() && parent.column() != 0)
         return QModelIndex();
 //! [5]
+    qDebug()<<"parent.column = "<<parent.column();
 
 //! [6]
     TreeItem *parentItem = getItem(parent);
-
+    qDebug()<<"parent.data   = "<<parentItem->returnitemData();
+    qDebug()<<"targer row = "<<row;
+    qDebug()<<"parent.childcount() = "<<parentItem->childCount();
     TreeItem *childItem = parentItem->child(row);
     if (childItem)
         return createIndex(row, column, childItem);
@@ -146,6 +154,7 @@ bool TreeModel::insertColumns(int position, int columns, const QModelIndex &pare
 
 bool TreeModel::insertRows(int position, int rows, const QModelIndex &parent)
 {
+    position=getItem(parent)->childCount();//parent指的是将要作为父节点的表项，直接将数据插入到项目最后即可，省心
     TreeItem *parentItem = getItem(parent);
     bool success;
     QVector<QVariant> Data;
@@ -197,16 +206,35 @@ bool TreeModel::removeRows(int position, int rows, const QModelIndex &parent)
     TreeItem *parentItem = getItem(parent);
     bool success = true;
 
+    /**************************/
+    parentItem=getItem(parent);
+    qDebug()<<"the parent item = "<<parentItem->returnitemData();
+    qDebug()<<"position = "<<position<<"\nrow = "<<rows;
+    for(int i=position;i<rows+position;i++)
+    {
+        TreeItem* child_parent_needtoinsert=parentItem->child(i);
+        qDebug()<<"child_parent_needtoinsert is "<<child_parent_needtoinsert->returnitemData();
+        if(child_parent_needtoinsert->childCount()>0)
+        {
+            qDebug()<<"The item ready to delete whitch has child = "<<child_parent_needtoinsert->returnitemData();
+            qDebug()<<"parent item  = "<<parentItem->returnitemData();
+            TreeItem *tk = new TreeItem(child_parent_needtoinsert->returnitemData(),child_parent_needtoinsert->returnchildItem(),child_parent_needtoinsert->parent());
+            Buf_Parent_Point[Buf_cout]=tk;
+            Buf_cout++;
+        }
+    }
+    qDebug()<<"before remove parent.row = "<<parentItem->childCount();
+     /**************************/
     beginRemoveRows(parent, position, position + rows - 1);
     success = parentItem->removeChildren(position, rows);
     endRemoveRows();
-
+    qDebug()<<"parent.row = "<<parentItem->childCount();
     return success;
 }
 
 Qt::DropActions TreeModel::supportedDropActions() const
 {
-    return Qt::CopyAction|Qt::MoveAction;
+    return Qt::MoveAction;
 }
 
 QStringList TreeModel::mimeTypes() const
@@ -221,11 +249,25 @@ QMimeData *TreeModel::mimeData(const QModelIndexList &indexes) const
     QMimeData *mimeData = new QMimeData();
     QByteArray  encodeData;
     QDataStream stream(&encodeData,QIODevice::WriteOnly);
-    foreach (const QModelIndex &index, indexes) {
-        if(index.isValid())
+    foreach( QModelIndex index,indexes)
+    {
+        qDebug()<<getItem(index)->returnitemData();
+    }
+    int k=1;
+    k++;
+
+
+    for(int i=0;i<(indexes.size()/2);i++)
+    {
+        if(indexes[i].isValid())
         {
-            QString text=data(index,Qt::DisplayRole).toString();
+            QString text;
+            text=((TreeItem*)indexes[i].internalPointer())->returnitemData().at(0).toString();
             stream<<text;
+            qDebug()<<"index["<<i<<"] = "<<text;
+            text=((TreeItem*)indexes[i].internalPointer())->returnitemData().at(1).toString();
+            qDebug()<<"index["<<i<<"] = "<<text;
+            stream<<text;//此处颇应改进&&
         }
     }
     mimeData->setData("application/vnd.text.list",encodeData);
@@ -242,6 +284,16 @@ bool TreeModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int r
      *if(column>0)
      *return false;
      ***/
+    /**********
+     *
+     *删除行前先将子树部分转移出来插入
+     ********************/
+
+    /*************************
+     *
+     *end
+     *
+     ************************/
     int beginrow;
     if(row!=-1)
     {
@@ -255,7 +307,7 @@ bool TreeModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int r
         }
         else
         {
-            beginrow=rowCount(QModelIndex());
+            beginrow=0;
         }
     }
     QByteArray encodeData=data->data("application/vnd.text.list");
@@ -269,19 +321,73 @@ bool TreeModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int r
         newItems<<text;
         rows++;
     }
-    insertRows(beginrow,rows,QModelIndex());
-    foreach (const QString &text, newItems) {
-        QModelIndex idx = index(beginrow,0,QModelIndex());
-        setData(idx,text);
+    /******************************
+     *test
+     *
+     *****************************/
+    TreeItem *test=getItem(parent);
+    qDebug()<<"target Data Value is "<<test->returnitemData();
+    qDebug()<<"parent.column = "<<parent.column()<<" and  parent.isValid() = "<<parent.isValid();
+    if(parent.isValid()&& parent.column() != 0)
+    {
+
+        return false;
+    }
+    /******************************
+     *test
+     *
+     *****************************/
+    beginrow=getItem(parent)->childCount();//beginrow用于记录初始插入的位置
+    insertRows(beginrow,rows/2,parent);
+
+    QVector<QVariant> var;
+    int num=0;
+    while(num<(newItems.size()))
+    {
+        QModelIndex idx = index(beginrow,2,parent);
+        var<<newItems[num]<<newItems[num+1];
+        qDebug()<<newItems[num+1];
+        qDebug()<<"all newitem = "<<newItems;
+        num+=2;
+        qDebug()<<"std var = "<<var;
+        setData(idx,var);
+        qDebug()<<"set end";
+        var.clear();
         beginrow++;
+    }
+    while(Buf_cout>=0)
+    {
+        TreeItem *Supply_Origin=Buf_Parent_Point[Buf_cout];
+        TreeItem *Supply_Parent=Supply_Origin->parent();
+        /*
+        beginInsertRows(Supply_Parent,Supply_Parent->childCount(),parentItem->childCount()+child_parent_needtoinsert->childCount()-1);
+
+        for(int z=0;z< child_parent_needtoinsert->childCount();z++)
+        {
+            qDebug()<<"child item = "<<child_parent_needtoinsert->child(z)->returnitemData();
+            parentItem->insertChildren(parentItem->childCount(),child_parent_needtoinsert->child(z));
+            child_parent_needtoinsert->child(z)->setparent(parentItem);
+            index(parentItem->childCount()-1,2,parent);
+        }
+        endInsertRows();
+        */
+        Buf_cout--;
     }
     return true;
 }
 
+QVector<QVariant> TreeModel::returnItemData( QModelIndex index)
+{
+    TreeItem *a=getItem(index);
+    return a->returnitemData();
+}
+
+
+
 //! [8]
 int TreeModel::rowCount(const QModelIndex &parent) const
 {
-    TreeItem *parentItem = getItem(parent);
+    TreeItem *parentItem = getItem(parent);//&&
     if(parentItem!=NULL)
     {
     return parentItem->childCount();
@@ -293,15 +399,22 @@ int TreeModel::rowCount(const QModelIndex &parent) const
 }
 //! [8]
 
-bool TreeModel::setData(const QModelIndex &index, const QVariant &value,
+bool TreeModel::setData(const QModelIndex &index, const QVector<QVariant> &value,
                         int role)
 {
+    qDebug()<<"begin setdata";
     if (role != Qt::EditRole)
         return false;
 
     TreeItem *item = getItem(index);
-    bool result = item->setData(index.column(), value);
-
+    qDebug()<<"index.column = "<<index.column();
+    qDebug()<<"setData = "<<value;
+    int index_column=index.column();
+    if(index_column==-1)
+    {
+        index_column=2;//&&要疯了b
+    }
+    bool result = item->setData(index_column, value);
     if (result)
         emit dataChanged(index, index);
 
@@ -309,7 +422,7 @@ bool TreeModel::setData(const QModelIndex &index, const QVariant &value,
 }
 
 bool TreeModel::setHeaderData(int section, Qt::Orientation orientation,
-                              const QVariant &value, int role)
+                              const QVector<QVariant> &value, int role)
 {
     if (role != Qt::EditRole || orientation != Qt::Horizontal)
         return false;

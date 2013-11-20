@@ -21,6 +21,7 @@ SortTheRecordNameLikeDir::SortTheRecordNameLikeDir(QWidget *parent) :
     ui->treeView->setSelectionMode(QAbstractItemView::ExtendedSelection);
     ui->treeView->setDragEnabled(true);
     ui->treeView->setAcceptDrops(true);
+    ui->treeView->setEnabled(true);
     ui->treeView->setDropIndicatorShown(true);
     ui->treeView->setModel(model);
     //ui->treeView->show();
