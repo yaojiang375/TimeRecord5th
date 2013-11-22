@@ -80,6 +80,7 @@ private:
     QList<TreeItem*> childItems;
     QVector<QVariant> itemData;
     TreeItem *parentItem;
+    TreeItem *Buf_Parentitem;
 
 };
 //! [0]

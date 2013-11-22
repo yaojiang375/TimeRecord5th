@@ -8,12 +8,12 @@
  *
  ****************/
 #include "mainrecorddb.h"
-globeset globe;
+//globeset globe;
 int main(int argc, char *argv[])
 {
 
     QApplication a(argc, argv);
-    globe.read();
+    //globe.read();
     /*Form b(&globe);
     b.show();
     */

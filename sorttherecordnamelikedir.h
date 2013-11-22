@@ -2,7 +2,10 @@
 #define SORTTHERECORDNAMELIKEDIR_H
 
 #include <QWidget>
-
+#include <QtXml>
+#include <QDebug>
+#include <QFile>
+#include <QTreeWidget>
 namespace Ui {
 class SortTheRecordNameLikeDir;
 }
@@ -17,6 +20,8 @@ public:
     
 private:
     Ui::SortTheRecordNameLikeDir *ui;
+    QList<QTreeWidgetItem> ReturnItemList_XML(QDomElement &Node, QTreeWidgetItem *parent);
+
 };
 
 #endif // SORTTHERECORDNAMELIKEDIR_H

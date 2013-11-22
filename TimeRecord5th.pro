@@ -22,9 +22,7 @@ SOURCES += main.cpp\
     GTDxml.cpp \
     recordgetandpost.cpp \
     mainrecorddb.cpp \
-    sorttherecordnamelikedir.cpp \
-    treemodel.cpp \
-    treeitem.cpp
+    sorttherecordnamelikedir.cpp
 
 HEADERS  += \
     readrecord.h \
@@ -35,9 +33,7 @@ HEADERS  += \
     GTDxml.h \
     recordgetandpost.h \
     mainrecorddb.h \
-    sorttherecordnamelikedir.h \
-    treemodel.h \
-    treeitem.h
+    sorttherecordnamelikedir.h
 
 FORMS    += \
     readrecord.ui \
