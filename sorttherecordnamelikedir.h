@@ -18,9 +18,18 @@ public:
     explicit SortTheRecordNameLikeDir(QWidget *parent = 0);
     ~SortTheRecordNameLikeDir();
     
+private slots:
+    //void on_treeWidget_customContextMenuRequested(const QPoint &pos);
+
+    void on_treeWidget_customContextMenuRequested(const QPoint &pos);
+    void on_treeWidgetItem_delete();
+    void on_treeWidgetItem_insert();
 private:
     Ui::SortTheRecordNameLikeDir *ui;
     QList<QTreeWidgetItem> ReturnItemList_XML(QDomElement &Node, QTreeWidgetItem *parent);
+    QTreeWidgetItem *Menueitem;
+    void FreeItem(QTreeWidgetItem* item);
+    int  MenuCount;
 
 };
 

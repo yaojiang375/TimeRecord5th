@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>715</width>
-    <height>368</height>
+    <width>642</width>
+    <height>370</height>
    </rect>
   </property>
   <property name="baseSize">
@@ -25,10 +25,10 @@
   <widget class="QTreeWidget" name="treeWidget">
    <property name="geometry">
     <rect>
-     <x>50</x>
-     <y>30</y>
-     <width>500</width>
-     <height>311</height>
+     <x>20</x>
+     <y>50</y>
+     <width>600</width>
+     <height>321</height>
     </rect>
    </property>
    <property name="sizePolicy">
@@ -47,7 +47,7 @@
     <bool>false</bool>
    </property>
    <property name="contextMenuPolicy">
-    <enum>Qt::DefaultContextMenu</enum>
+    <enum>Qt::CustomContextMenu</enum>
    </property>
    <property name="acceptDrops">
     <bool>true</bool>
@@ -79,6 +79,9 @@
    <property name="textElideMode">
     <enum>Qt::ElideLeft</enum>
    </property>
+   <attribute name="headerHighlightSections">
+    <bool>false</bool>
+   </attribute>
    <attribute name="headerMinimumSectionSize">
     <number>20</number>
    </attribute>
@@ -87,14 +90,40 @@
    </attribute>
    <column>
     <property name="text">
-     <string>快捷键</string>
+     <string>分类名</string>
     </property>
    </column>
    <column>
     <property name="text">
-     <string>属性</string>
+     <string>快捷序号</string>
     </property>
    </column>
+  </widget>
+  <widget class="QPushButton" name="pushButton">
+   <property name="geometry">
+    <rect>
+     <x>140</x>
+     <y>10</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>添加类别</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_2">
+   <property name="geometry">
+    <rect>
+     <x>370</x>
+     <y>10</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>删除选定项</string>
+   </property>
   </widget>
  </widget>
  <resources/>
