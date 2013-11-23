@@ -34,6 +34,11 @@ private slots:
 private:
     Ui::MainRecordDB *ui;
     globeset *globe;
+    void Sort_Map(QDomElement root,QMap<QString,QString> &Map_ItemToSortString,QMap<int,QString>  &Map_intToSortString,QString Dir="");
+    QMap<QString,QString> Map_ItemToSortString;
+    QMap<int,QString>     Map_intToSortString;
+    QSet<QString>         Set_NeedSort;
+    void                  FlushMap();
 };
 
 #endif // MAINRECORDDB_H

@@ -2,8 +2,9 @@
 #include "ui_sorttherecordnamelikedir.h"
 #include <QMenu>
 #include <QAction>
-SortTheRecordNameLikeDir::SortTheRecordNameLikeDir(QWidget *parent) :
-    QWidget(parent),
+#include "mainrecorddb.h"
+SortTheRecordNameLikeDir::SortTheRecordNameLikeDir(QSet<QString> &t, QWidget *parent) :QWidget(parent),
+
     ui(new Ui::SortTheRecordNameLikeDir)
 {
     ui->setupUi(this);
@@ -35,14 +36,31 @@ SortTheRecordNameLikeDir::SortTheRecordNameLikeDir(QWidget *parent) :
         ui->treeWidget->addTopLevelItem(RootItem);
         Data=Data.nextSiblingElement("Node");
     }
+    QStringList comment;
+    comment<<trUtf8("未分类")<<"";
+    QTreeWidgetItem *RootItem=new QTreeWidgetItem(comment);
+    QSet<QString>::iterator SetRead=t.begin();
+    while(SetRead!=t.end())
+    {
+        comment.clear();
+        comment<<SetRead->simplified()<<"";
+        QTreeWidgetItem *BufItem=new QTreeWidgetItem(comment);
+        BufItem->setFlags(BufItem->flags()|Qt::ItemIsEditable);
+        RootItem->addChild(BufItem);
+        SetRead++;
+    }
+    ui->treeWidget->addTopLevelItem(RootItem);
+
     /*********************
      *\读取XML
      ********************/
+    txt.close();
     ui->treeWidget->show();
 }
 
 SortTheRecordNameLikeDir::~SortTheRecordNameLikeDir()
 {
+
     delete ui;
 }
 
@@ -84,6 +102,34 @@ void SortTheRecordNameLikeDir::FreeItem(QTreeWidgetItem *item)
         delete item;
     }
     return;
+}
+
+QDomElement SortTheRecordNameLikeDir::WidgetToDom(QTreeWidgetItem *item,QDomDocument &root)
+{
+    QDomElement RootDom;
+    RootDom=root.createElement("Node");
+    for(int i=0;i<item->childCount();i++)
+    {
+        RootDom.appendChild(WidgetToDom(item->child(i),root));
+    }
+    QDomElement Sort_ID,Quick_Num;
+    Quick_Num=root.createElement("Quick_Num");
+    Sort_ID  =root.createElement("Sort_ID");
+    QDomText    text;
+    if(item->childCount()==0)
+    {
+        text=root.createTextNode("");
+    }
+    else
+    {
+        text=root.createTextNode(item->text(1));
+    }
+    Quick_Num.appendChild(text);
+    text=root.createTextNode(item->text(0));
+    Sort_ID.appendChild(text);
+    RootDom.appendChild(Sort_ID);
+    RootDom.appendChild(Quick_Num);
+    return RootDom;
 }
 
 void SortTheRecordNameLikeDir::on_treeWidget_customContextMenuRequested(const QPoint &pos)
@@ -176,3 +222,27 @@ void SortTheRecordNameLikeDir::on_treeWidget_customContextMenuRequested(const QP
 
 }
 */
+
+void SortTheRecordNameLikeDir::on_pushButton_clicked()
+{
+    QFile txt("C:/test.xml");
+    txt.open(QIODevice::WriteOnly);
+    txt.resize(0);
+    QTextStream text(&txt);
+    QDomDocument Xml_File;
+    QDomProcessingInstruction       File_InsTruction;
+    QDomElement                     File_root;
+    File_InsTruction=Xml_File.createProcessingInstruction("xml","version=\"1.0\" encoding = \"UTF-8\"");
+    Xml_File.appendChild(File_InsTruction);
+    File_root=Xml_File.createElement("root");
+    File_root.setAttribute("DefineByself","1");
+    for(int i =0;i<ui->treeWidget->topLevelItemCount();i++)
+    {
+        File_root.appendChild(WidgetToDom(ui->treeWidget->topLevelItem(i),Xml_File));
+    }
+    Xml_File.appendChild(File_root);
+    Xml_File.save(text,4);
+    txt.close();
+    this->close();
+}
+

@@ -15,7 +15,7 @@ class SortTheRecordNameLikeDir : public QWidget
     Q_OBJECT
     
 public:
-    explicit SortTheRecordNameLikeDir(QWidget *parent = 0);
+    explicit SortTheRecordNameLikeDir(QSet<QString> &t,QWidget *parent = 0);
     ~SortTheRecordNameLikeDir();
     
 private slots:
@@ -24,13 +24,15 @@ private slots:
     void on_treeWidget_customContextMenuRequested(const QPoint &pos);
     void on_treeWidgetItem_delete();
     void on_treeWidgetItem_insert();
+    void on_pushButton_clicked();
+
 private:
     Ui::SortTheRecordNameLikeDir *ui;
     QList<QTreeWidgetItem> ReturnItemList_XML(QDomElement &Node, QTreeWidgetItem *parent);
     QTreeWidgetItem *Menueitem;
     void FreeItem(QTreeWidgetItem* item);
     int  MenuCount;
-
+    QDomElement   WidgetToDom(QTreeWidgetItem* item, QDomDocument &root);
 };
 
 #endif // SORTTHERECORDNAMELIKEDIR_H
