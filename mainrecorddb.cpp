@@ -84,14 +84,17 @@ void MainRecordDB::on_ShowButton_clicked()
             ItemChildList.append(new QStandardItem(VarDate.text()));
             VarDate=       Record.firstChildElement("ThingRem");
             ItemChildList.append(new QStandardItem(VarDate.text()));
-            ItemChildList.append(new QStandardItem(
-                                     (Map_ItemToSortString.value(Record.firstChildElement("Thing").text().simplified()).size()==0)?
-                                         trUtf8("待分类"):Map_ItemToSortString.value(Record.firstChildElement("Thing").text())
-                                                   ));
-            if(Map_ItemToSortString.value(Record.firstChildElement("Thing").text().simplified()).size()==0)
+            QString        Sort_ID=Map_ItemToSortString.value(Record.firstChildElement("Thing").text().simplified());
+            if(Sort_ID.size()==0)
             {
-                Set_NeedSort.insert(Record.firstChildElement("Thing").text());
+                Sort_ID=trUtf8("待分类");
+                Vector_NeedSort.append((Record.firstChildElement("Thing").text().simplified()));
             }
+            if(Sort_ID.split("\\").at(0).compare(trUtf8("自定义"))==0)
+            {
+                Sort_ID.clear();
+            }
+            ItemChildList.append(new QStandardItem(Sort_ID));
             ItemChildList.at(0)->setSizeHint(RowSize);//设定行高
             ItemChildList.at(1)->setSizeHint(RowSize);
             ItemChildList.at(2)->setSizeHint(RowSize);
@@ -146,8 +149,21 @@ void MainRecordDB::on_pushButton_clicked()
         read.save(text,4);
         txt.close();
     }
-
-    SortTheRecordNameLikeDir   *kz= new SortTheRecordNameLikeDir(Set_NeedSort,0);
+    qSort(Vector_NeedSort.begin(),Vector_NeedSort.end());//对Vector去重
+    QVector<QString> Buf_Vec(Vector_NeedSort);
+    Vector_NeedSort.clear();
+    for(int i=0;i<Buf_Vec.size();i++)
+    {
+        if(i<(Buf_Vec.size()-1))
+        {
+            if(Buf_Vec[i]==Buf_Vec[i+1])
+            {
+                continue;
+            }
+        }
+        Vector_NeedSort.append(Buf_Vec[i]);
+    }
+    SortTheRecordNameLikeDir   *kz= new SortTheRecordNameLikeDir(Vector_NeedSort,0);
     kz->show();
 
     //this->hide();

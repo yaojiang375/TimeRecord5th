@@ -3,10 +3,11 @@
 #include <QMenu>
 #include <QAction>
 #include "mainrecorddb.h"
-SortTheRecordNameLikeDir::SortTheRecordNameLikeDir(QSet<QString> &t, QWidget *parent) :QWidget(parent),
+SortTheRecordNameLikeDir::SortTheRecordNameLikeDir(QVector<QString> &t, QWidget *parent) :QWidget(parent),
 
     ui(new Ui::SortTheRecordNameLikeDir)
 {
+
     ui->setupUi(this);
     //ui->treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);//设置右键菜单
     MenuCount=0;
@@ -37,19 +38,23 @@ SortTheRecordNameLikeDir::SortTheRecordNameLikeDir(QSet<QString> &t, QWidget *pa
         Data=Data.nextSiblingElement("Node");
     }
     QStringList comment;
-    comment<<trUtf8("未分类")<<"";
-    QTreeWidgetItem *RootItem=new QTreeWidgetItem(comment);
-    QSet<QString>::iterator SetRead=t.begin();
-    while(SetRead!=t.end())
+    if(t.size()>0)
     {
-        comment.clear();
-        comment<<SetRead->simplified()<<"";
-        QTreeWidgetItem *BufItem=new QTreeWidgetItem(comment);
-        BufItem->setFlags(BufItem->flags()|Qt::ItemIsEditable);
-        RootItem->addChild(BufItem);
-        SetRead++;
+        comment<<trUtf8("未分类")<<"";
+        QTreeWidgetItem *RootItem=new QTreeWidgetItem(comment);
+        QVector<QString>::iterator VecRead=t.begin();
+        while(VecRead!=t.end())
+        {
+            comment.clear();
+            comment<<VecRead->simplified()<<"";
+            QTreeWidgetItem *BufItem=new QTreeWidgetItem(comment);
+            BufItem->setFlags(BufItem->flags()|Qt::ItemIsEditable);
+            RootItem->addChild(BufItem);
+            VecRead++;
+        }
+        ui->treeWidget->addTopLevelItem(RootItem);
     }
-    ui->treeWidget->addTopLevelItem(RootItem);
+
 
     /*********************
      *\读取XML
@@ -216,13 +221,6 @@ void SortTheRecordNameLikeDir::on_treeWidgetItem_insert()
 
 }
 
-/*
-void SortTheRecordNameLikeDir::on_treeWidget_customContextMenuRequested(const QPoint &pos)
-{
-
-}
-*/
-
 void SortTheRecordNameLikeDir::on_pushButton_clicked()
 {
     QFile txt("C:/test.xml");
@@ -238,7 +236,12 @@ void SortTheRecordNameLikeDir::on_pushButton_clicked()
     File_root.setAttribute("DefineByself","1");
     for(int i =0;i<ui->treeWidget->topLevelItemCount();i++)
     {
-        File_root.appendChild(WidgetToDom(ui->treeWidget->topLevelItem(i),Xml_File));
+        qDebug()<<ui->treeWidget->topLevelItem(i)->text(0);
+        QString read=ui->treeWidget->topLevelItem(i)->text(0);
+        if((ui->treeWidget->topLevelItem(i)->text(0).compare(trUtf8("未分类"))))//汉语字符要注意utf转换
+        {
+            File_root.appendChild(WidgetToDom(ui->treeWidget->topLevelItem(i),Xml_File));
+        }
     }
     Xml_File.appendChild(File_root);
     Xml_File.save(text,4);

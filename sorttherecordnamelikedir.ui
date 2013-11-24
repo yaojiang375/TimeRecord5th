@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>642</width>
-    <height>370</height>
+    <width>841</width>
+    <height>484</height>
    </rect>
   </property>
   <property name="baseSize">
@@ -27,8 +27,8 @@
     <rect>
      <x>20</x>
      <y>50</y>
-     <width>600</width>
-     <height>321</height>
+     <width>641</width>
+     <height>441</height>
     </rect>
    </property>
    <property name="sizePolicy">
@@ -36,6 +36,18 @@
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>600</width>
+     <height>321</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>900</width>
+     <height>642</height>
+    </size>
    </property>
    <property name="baseSize">
     <size>
@@ -102,8 +114,8 @@
   <widget class="QPushButton" name="pushButton">
    <property name="geometry">
     <rect>
-     <x>270</x>
-     <y>10</y>
+     <x>250</x>
+     <y>0</y>
      <width>75</width>
      <height>23</height>
     </rect>

@@ -15,7 +15,7 @@ class SortTheRecordNameLikeDir : public QWidget
     Q_OBJECT
     
 public:
-    explicit SortTheRecordNameLikeDir(QSet<QString> &t,QWidget *parent = 0);
+    explicit SortTheRecordNameLikeDir(QVector<QString> &t,QWidget *parent = 0);
     ~SortTheRecordNameLikeDir();
     
 private slots:

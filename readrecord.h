@@ -20,7 +20,7 @@ signals:
 
 
 private slots:
-    void on_pushButton_clicked();
+
     void on_ShowButton_clicked();
     void on_AddToRecordDB_clicked();
 
