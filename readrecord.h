@@ -26,6 +26,8 @@ private slots:
 
     void on_ShowRecordDB_clicked();
 
+
+
 private:
     void insertTable();
     Ui::ReadRecord *ui;

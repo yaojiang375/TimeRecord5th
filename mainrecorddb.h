@@ -31,6 +31,10 @@ private slots:
 
     void on_pushButton_clicked();
 
+
+
+    void on_ConvertToExcel_clicked();
+
 private:
     Ui::MainRecordDB *ui;
     globeset *globe;

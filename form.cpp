@@ -1,6 +1,6 @@
 #include "form.h"
 #include "ui_form.h"
-
+#include <QFileDialog>
 #include <iostream>
 Form::Form(globeset *globek, QWidget *parent) :
     QWidget(parent),
@@ -24,6 +24,14 @@ void Form::on_pushButton_clicked()
     needfix.clear();
     wrongstring.clear();//清空缓存
     ui->tableWidget->show();
+    if(ui->pushButton->text().compare(trUtf8("打开文件"))==0)
+    {
+        globe->SmsPos=QFileDialog::getOpenFileName(this,trUtf8("打开短信记录文件"),trUtf8("."),trUtf8("豌豆荚导出的短信记录 (*.csv);;所有文件 (*.*)"));
+        qDebug()<<"SmsPos="<<globe->SmsPos;
+    }
+    ui->pushButton->setText(trUtf8("验证"));
+
+
     QFile a(globe->SmsPos);
     a.open(QIODevice::ReadWrite);
     QTextStream b(&a);
@@ -64,7 +72,6 @@ void Form::on_pushButton_clicked()
             }
         }
         midRecord++;
-
     }
 
     int i=0;
@@ -109,7 +116,7 @@ void Form::on_pushButton_clicked()
     a.close();
 }
 
-void Form::on_pushButton_2_clicked()
+void Form::on_SaveRepair_clicked()
 {
 
     qDebug()<<"ReadString.length()"<<needfix.length();
@@ -138,5 +145,5 @@ void Form::on_next_clicked()
 {
     ReadRecord  *a = new ReadRecord(globe);
     a->show();
-    this->hide();
+    this->close();
 }

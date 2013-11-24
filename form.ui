@@ -26,20 +26,20 @@
   <widget class="QPushButton" name="pushButton">
    <property name="geometry">
     <rect>
-     <x>560</x>
+     <x>80</x>
      <y>20</y>
      <width>75</width>
      <height>23</height>
     </rect>
    </property>
    <property name="text">
-    <string>验证</string>
+    <string>打开文件</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_2">
+  <widget class="QPushButton" name="SaveRepair">
    <property name="geometry">
     <rect>
-     <x>70</x>
+     <x>520</x>
      <y>20</y>
      <width>75</width>
      <height>23</height>
@@ -52,10 +52,10 @@
   <widget class="QPushButton" name="next">
    <property name="geometry">
     <rect>
-     <x>260</x>
-     <y>0</y>
-     <width>141</width>
-     <height>61</height>
+     <x>300</x>
+     <y>20</y>
+     <width>71</width>
+     <height>21</height>
     </rect>
    </property>
    <property name="text">

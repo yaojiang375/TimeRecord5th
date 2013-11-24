@@ -16,17 +16,17 @@
   <widget class="QPushButton" name="ShowButton">
    <property name="geometry">
     <rect>
-     <x>100</x>
+     <x>90</x>
      <y>0</y>
      <width>121</width>
      <height>51</height>
     </rect>
    </property>
    <property name="text">
-    <string>显示新加入记录</string>
+    <string>显示记录</string>
    </property>
   </widget>
-  <widget class="QTreeView" name="treeView">
+  <widget class="QTreeWidget" name="treeWidget">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -39,7 +39,7 @@
   <widget class="QPushButton" name="pushButton">
    <property name="geometry">
     <rect>
-     <x>380</x>
+     <x>260</x>
      <y>0</y>
      <width>101</width>
      <height>51</height>
@@ -47,6 +47,19 @@
    </property>
    <property name="text">
     <string>事件分类</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="ConvertToExcel">
+   <property name="geometry">
+    <rect>
+     <x>470</x>
+     <y>0</y>
+     <width>121</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>导出为Excel格式</string>
    </property>
   </widget>
  </widget>

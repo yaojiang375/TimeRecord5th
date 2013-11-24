@@ -26,7 +26,7 @@ public:
 private slots:
     void on_pushButton_clicked();
 
-    void on_pushButton_2_clicked();
+    void on_SaveRepair_clicked();
 
     void on_next_clicked();
 

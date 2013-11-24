@@ -28,7 +28,7 @@ int Content_Check::STDCheck(globeset globe, QString content)
     {
         if(content.indexOf(globe.ReghtRem)!=-1)
         {
-            content.remove(content.indexOf(globe.LeftRem),content.indexOf(globe.ReghtRem)-content.indexOf(globe.LeftRem));
+            content.remove(content.indexOf(globe.LeftRem),content.indexOf(globe.ReghtRem)-content.indexOf(globe.LeftRem)+1);//右括号也要删掉
             return STDCheck(globe,content);
         }
         else

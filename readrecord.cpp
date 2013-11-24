@@ -18,9 +18,8 @@ ReadRecord::ReadRecord(globeset *globek,QWidget *parent) :
 {
     ui->setupUi(this);
     ui->ShowRecordDB->hide();
-    ui->AddToRecordDB->hide();
+    //ui->AddToRecordDB->hide();
     globe=globek;
-
     QTableWidget    *table=ui->tableWidget;
     table->setColumnCount(7);
     QStringList         Header;
@@ -101,7 +100,7 @@ void ReadRecord::on_ShowButton_clicked()
          i++;
         Record=Record.nextSibling();
      }
-     ui->AddToRecordDB->show();
+     //ui->AddToRecordDB->show();
 }
 
 
@@ -122,3 +121,5 @@ void ReadRecord::on_ShowRecordDB_clicked()
     a->show();
     this->hide();
 }
+
+

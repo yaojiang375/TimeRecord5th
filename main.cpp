@@ -1,7 +1,7 @@
 #include "readrecord.h"
 #include <QApplication>
 #include <globe.h>
-#include "readrecord.h"
+#include <form.h>
 
 /*****************
  *测试
@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
     globe.read();
-    ReadRecord t(&globe);
-    t.show();
+    Form check_form(&globe);
+    check_form.show();
     return a.exec();
 }

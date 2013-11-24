@@ -3,18 +3,22 @@
 
 #include "sorttherecordnamelikedir.h"
 #include <QStandardItemModel>
+#include <QFileDialog>//导出为xml
 MainRecordDB::MainRecordDB(globeset *globek,QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MainRecordDB)
 {
     ui->setupUi(this);
     globe = globek;
-    ui->treeView->setColumnWidth(0,100);//日期
-    ui->treeView->setColumnWidth(1,50);//时间
-    ui->treeView->setColumnWidth(2,100);//事项名
-    ui->treeView->setColumnWidth(3,80);//持续时长
-    ui->treeView->setColumnWidth(4,100);//事件备注
-    ui->treeView->setColumnWidth(5,50);//分类代号
+    ui->treeWidget->setColumnWidth(0,100);//日期
+    ui->treeWidget->setColumnWidth(1,50);//时间
+    ui->treeWidget->setColumnWidth(2,100);//事项名
+    ui->treeWidget->setColumnWidth(3,80);//持续时长
+    ui->treeWidget->setColumnWidth(4,100);//事件备注
+    ui->treeWidget->setColumnWidth(5,50);//分类代号
+    QStringList     BufHeaderList;
+    BufHeaderList<<trUtf8("日期")<<trUtf8("时间")<<trUtf8("事项名")<<trUtf8("持续时长")<<trUtf8("事件备注")<<trUtf8("分类");
+    ui->treeWidget->setHeaderItem(new QTreeWidgetItem(BufHeaderList));
     FlushMap();
 }
 
@@ -26,30 +30,6 @@ MainRecordDB::~MainRecordDB()
 void MainRecordDB::on_ShowButton_clicked()
 {
     FlushMap();
-    QStandardItemModel    *Model = new QStandardItemModel(0,6);
-    Model->setHeaderData(0, Qt::Horizontal, trUtf8("日期"));
-    Model->setHeaderData(1, Qt::Horizontal, trUtf8("时间"));
-    Model->setHeaderData(2, Qt::Horizontal, trUtf8("事项名"));
-    Model->setHeaderData(3, Qt::Horizontal, trUtf8("持续时长"));
-    Model->setHeaderData(4, Qt::Horizontal, trUtf8("事件备注"));
-    Model->setHeaderData(5, Qt::Horizontal, trUtf8("分类"));
-    /**************************************************
-     * <测试>
-     *************************************************/
-
-
-    ui->treeView->setDragEnabled(true);
-    ui->treeView->setDropIndicatorShown(true);
-    ui->treeView->viewport()->setAcceptDrops(true);
-    ui->treeView->setDragDropMode(QAbstractItemView::InternalMove);
-
-
-    /**************************************************
-     * </测试>
-     *************************************************/
-
-
-
     /**************************************************
      * <xml大杀器，高能慎入>
      *************************************************/
@@ -67,23 +47,24 @@ void MainRecordDB::on_ShowButton_clicked()
     RowSize.setHeight(20);
     while(!Day.isNull())
     {
-        QList<QStandardItem *>      ItemList;
+        QTreeWidgetItem *      ItemList;
+        QStringList    TopRowList;
         Record =       Day.firstChildElement("Record");
         VarDate=       Record.firstChildElement("Date");
-        ItemList.append(new QStandardItem(VarDate.text()));
-        qDebug()<<VarDate.text();
+        TopRowList<<VarDate.text()<<" "<<" "<<" "<<" ";
+        ItemList=(new QTreeWidgetItem(TopRowList));
         while(!Record.isNull())
         {
-            QList<QStandardItem *> ItemChildList;
-            ItemChildList.append(new QStandardItem(" "));
+            QStringList    RowList;
+            RowList<<" ";
             VarDate=       Record.firstChildElement("Time");
-            ItemChildList.append(new QStandardItem(VarDate.text()));
+            RowList<<VarDate.text();
             VarDate=       Record.firstChildElement("Thing");
-            ItemChildList.append(new QStandardItem(VarDate.text().simplified()));
+            RowList<<VarDate.text().simplified();
             VarDate=       Record.firstChildElement("Minute");
-            ItemChildList.append(new QStandardItem(VarDate.text()));
+            RowList<<VarDate.text();
             VarDate=       Record.firstChildElement("ThingRem");
-            ItemChildList.append(new QStandardItem(VarDate.text()));
+            RowList<<VarDate.text().simplified();
             QString        Sort_ID=Map_ItemToSortString.value(Record.firstChildElement("Thing").text().simplified());
             if(Sort_ID.size()==0)
             {
@@ -94,22 +75,14 @@ void MainRecordDB::on_ShowButton_clicked()
             {
                 Sort_ID.clear();
             }
-            ItemChildList.append(new QStandardItem(Sort_ID));
-            ItemChildList.at(0)->setSizeHint(RowSize);//设定行高
-            ItemChildList.at(1)->setSizeHint(RowSize);
-            ItemChildList.at(2)->setSizeHint(RowSize);
-            ItemChildList.at(3)->setSizeHint(RowSize);
-            ItemChildList.at(4)->setSizeHint(RowSize);
-
-            ItemList.at(0)->appendRow(ItemChildList);
+            RowList<<Sort_ID;
+            ItemList->addChild(new QTreeWidgetItem(RowList));
             Record   =     Record.nextSiblingElement("Record");
         }
             RowCount++;
             Day      =     Day.nextSiblingElement("Day");
-            Model->appendRow(ItemList);
+            ui->treeWidget->addTopLevelItem(ItemList);
     }
-
-    ui->treeView->setModel(Model);
     /**************************************************
      * </xml大杀器，高能慎入>
      *************************************************/
@@ -226,3 +199,207 @@ void MainRecordDB::FlushMap()
 }
 
 
+
+
+
+void MainRecordDB::on_ConvertToExcel_clicked()
+{
+    QString FileSave=QFileDialog::getSaveFileName(this,trUtf8("导出为Excel文件"),".",trUtf8("Excel文件 (*.xls);;所有文件(*.*)"));
+    QFile   Txt(FileSave);
+    Txt.open(QIODevice::ReadWrite);
+    Txt.resize(0);
+    QTextStream Text(&Txt);
+    QDomDocument    Save;
+    QDomProcessingInstruction   Instruction;
+    QDomElement                 Row;//将来可升级为OPEN XML格式
+    QDomElement                 WorkBook;
+    QDomElement                 Styles;//重要，无此部分无法打开
+        QDomElement                 Style;
+        QDomElement                 Alignment;
+        QDomElement                 Font;
+        QDomElement                 NumberFormat;
+    QDomElement                 WorkSheet;
+    QDomElement                 Table;
+    QDomElement                 Column;
+    QDomElement                 Cell;
+    QDomElement                 Data;
+    QDomText                    Dom_text;
+    Instruction     =Save.createProcessingInstruction("xml","version=\"1.0\" encoding = \"UTF-8\"");
+    Save.appendChild(Instruction);
+    Instruction     =Save.createProcessingInstruction("mso-application","progid=\"Excel.Sheet\"");
+    Save.appendChild(Instruction);
+    QTreeWidgetItem         *Item;
+    WorkBook        =Save.createElement("Workbook");
+    WorkBook.setAttribute("xmlns","urn:schemas-microsoft-com:office:spreadsheet");
+    WorkBook.setAttribute("xmlns:o","urn:schemas-microsoft-com:office:office");
+    WorkBook.setAttribute("xmlns:x","urn:schemas-microsoft-com:office:excel");
+    WorkBook.setAttribute("xmlns:ss","urn:schemas-microsoft-com:office:spreadsheet");
+    WorkBook.setAttribute("xmlns:html","http://www.w3.org/TR/REC-html40");
+    Styles          =Save.createElement("Styles");
+    Style       =Save.createElement("Style");
+    Style.setAttribute("ss:ID","Default");
+    Style.setAttribute("ss:Name","Normal");
+    Alignment   =Save.createElement("Alignment");
+    Alignment.setAttribute("ss:Vertical","Center");
+    Font        =Save.createElement("Font");
+    Font.setAttribute("ss:FontName",trUtf8("宋体");
+    Font.setAttribute("x:CharSet","134");
+    Font.setAttribute("ss:Size","11");
+    Font.setAttribute("ss:Color","#000000");
+    Style.appendChild(Alignment);
+    Style.appendChild(Font);
+    Styles.appendChild(Style);
+    Style       =Save.createElement("Style");
+    Style.setAttribute("ss:ID","s62");
+    NumberFormat=Save.createElement("NumberFormat");
+    NumberFormat.setAttribute("ss:Format","Short Date");
+    Style.appendChild(NumberFormat);
+    Styles.appendChild(Style);
+
+    Style       =Save.createElement("Style");
+    Style.setAttribute("ss:ID","s63");
+    NumberFormat=Save.createElement("NumberFormat");
+    NumberFormat.setAttribute("ss:Format","h:mm;@");
+    Style.appendChild(NumberFormat);
+    Styles.appendChild(Style);
+
+    Style       =Save.createElement("Style");
+    Style.setAttribute("ss:ID","s64");
+    NumberFormat=Save.createElement("NumberFormat");
+    NumberFormat.setAttribute("ss:Format","@");
+    Style.appendChild(NumberFormat);
+    Styles.appendChild(Style);
+
+    WorkBook.appendChild(Styles);
+    WorkSheet       =Save.createElement("Worksheet");
+    WorkSheet.setAttribute("ss:Name",trUtf8("时间统计表"));
+    Table           =Save.createElement("Table");
+{    Table.setAttribute("ss:ExpandedColumnCount","6");
+    Table.setAttribute("ss:ExpandedRowCount","10000000");
+    Table.setAttribute( "x:FullColumns","1");
+    Table.setAttribute("x:FullRows","1");
+    Table.setAttribute("ss:DefaultColumnWidth","54");
+    Table.setAttribute("ss:DefaultRowHeight","13.5");
+    Column          =Save.createElement("Column");
+    Column.setAttribute("ss:StyleID","s62");
+    Column.setAttribute("ss:AutoFitWidth","0");
+    Column.setAttribute("ss:Width","84.75");
+    Table.appendChild(Column);
+    Column          =Save.createElement("Column");
+    Column.setAttribute("ss:StyleID","s63");
+    Column.setAttribute( "ss:AutoFitWidth","0");
+    Table.appendChild(Column);
+    Column          =Save.createElement("Column");
+    Column.setAttribute("ss:StyleID","s64");
+    Column.setAttribute("ss:AutoFitWidth","0");
+    Column.setAttribute("ss:Span","3");
+    Column.setAttribute("ss:Width","84.75");
+    Table.appendChild(Column);
+    Row             =Save.createElement("Row");
+{
+        Cell=Save.createElement("Cell");
+        Data=Save.createElement("Data");
+        Data.setAttribute("ss:Type","String");
+        Dom_text=Save.createTextNode(trUtf8("日期"));
+        Data.appendChild(Dom_text);
+        Cell.appendChild(Data);
+        Row.appendChild(Cell);
+
+        Cell=Save.createElement("Cell");
+        Data=Save.createElement("Data");
+        Data.setAttribute("ss:Type","String");
+        Dom_text=Save.createTextNode(trUtf8("时间"));
+        Data.appendChild(Dom_text);
+        Cell.appendChild(Data);
+        Row.appendChild(Cell);
+
+        Cell=Save.createElement("Cell");
+        Data=Save.createElement("Data");
+        Data.setAttribute("ss:Type","String");
+        Dom_text=Save.createTextNode(trUtf8("事项名"));
+        Data.appendChild(Dom_text);
+        Cell.appendChild(Data);
+        Row.appendChild(Cell);
+
+        Cell=Save.createElement("Cell");
+        Data=Save.createElement("Data");
+        Data.setAttribute("ss:Type","String");
+        Dom_text=Save.createTextNode(trUtf8("持续时长"));
+        Data.appendChild(Dom_text);
+        Cell.appendChild(Data);
+        Row.appendChild(Cell);
+
+        Cell=Save.createElement("Cell");
+        Data=Save.createElement("Data");
+        Data.setAttribute("ss:Type","String");
+        Dom_text=Save.createTextNode(trUtf8("事件备注"));
+        Data.appendChild(Dom_text);
+        Cell.appendChild(Data);
+        Row.appendChild(Cell);
+
+        Cell=Save.createElement("Cell");
+        Data=Save.createElement("Data");
+        Data.setAttribute("ss:Type","String");
+        Dom_text=Save.createTextNode(trUtf8("分类"));
+        Data.appendChild(Dom_text);
+        Cell.appendChild(Data);
+        Row.appendChild(Cell);
+}
+    Table.appendChild(Row);
+    //标题列
+}
+    for(int i=0;i<ui->treeWidget->topLevelItemCount();i++)
+    {
+        Row =Save.createElement("Row");
+        for(int k=0;k<ui->treeWidget->topLevelItem(i)->childCount();k++)
+        {
+            Item=ui->treeWidget->topLevelItem(i);
+            Cell=Save.createElement("Cell");
+            Data=Save.createElement("Data");
+            Data.setAttribute("ss:Type","String");
+            Dom_text=Save.createTextNode(Item->text(0));
+            Data.appendChild(Dom_text);
+            Cell.appendChild(Data);
+            Row.appendChild(Cell);
+
+            Item=ui->treeWidget->topLevelItem(i)->child(k);
+            for(int z=0;z<Item->columnCount();z++)
+            {
+                Cell=Save.createElement("Cell");
+                Data=Save.createElement("Data");
+                switch (z)
+                {
+                case 1:
+                   Data.setAttribute("ss:Type","DateTime");
+                   break;
+                case 3:
+                    Data.setAttribute("ss:Type","Number");
+                    break;
+                default:
+                    Data.setAttribute("ss:Type","String");
+                    break;
+                }
+                if(z==1)
+                {
+                    Dom_text=Save.createTextNode("1991-03-20T"+Item->text(z)+":00.000");
+                }
+                else
+                {
+                    Dom_text=Save.createTextNode(Item->text(z));
+                }
+                Data.appendChild(Dom_text);
+                Cell.appendChild(Data);
+                Row.appendChild(Cell);
+            }
+        }
+        Table.appendChild(Row);
+    }
+
+    WorkSheet.appendChild(Table);
+    WorkBook.appendChild(WorkSheet);
+    Save.appendChild(WorkBook);
+    Save.save(Text,4);
+
+
+
+}

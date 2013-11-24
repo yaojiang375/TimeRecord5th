@@ -39,23 +39,10 @@
     </rect>
    </property>
   </widget>
-  <widget class="QPushButton" name="RecordSort">
-   <property name="geometry">
-    <rect>
-     <x>380</x>
-     <y>0</y>
-     <width>201</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>记录分类（默认开启自动分类）</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="AddToRecordDB">
    <property name="geometry">
     <rect>
-     <x>220</x>
+     <x>270</x>
      <y>0</y>
      <width>101</width>
      <height>51</height>
@@ -68,7 +55,7 @@
   <widget class="QPushButton" name="ShowRecordDB">
    <property name="geometry">
     <rect>
-     <x>590</x>
+     <x>450</x>
      <y>0</y>
      <width>81</width>
      <height>51</height>
