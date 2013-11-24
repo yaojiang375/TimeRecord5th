@@ -84,7 +84,7 @@ void RecordGetAndPost::RecordAdd(globeset globe)
     QDomDocument doc;
     QDomElement  xml_Body;
 
-
+{
     /********************************************************************/
         //这一段代码负责将已完成记录写入c：/GetAndPost.xml文件中，以供其他程序使用
         QFile   GetAndPost(globe.GetAndPostPos);
@@ -109,7 +109,7 @@ void RecordGetAndPost::RecordAdd(globeset globe)
 
     /********************************************************************/
 
-
+}
 
 
 
@@ -137,8 +137,8 @@ void RecordGetAndPost::RecordAdd(globeset globe)
         xmlFileRecordReader.intDate =globe.STLDate.daysTo(BufDate);
         xmlFileRecordReader.intTime =globe.STLTime.msecsTo(BufTime)/60000;//只记录分钟数就够了
 
-        xmlFileRecordReader.Debugprintf();
-/*        qDebug()<<"globe.Date="<<globe.STLDate.toString("yyyy-MM-dd");
+        //xmlFileRecordReader.Debugprintf();
+/*      qDebug()<<"globe.Date="<<globe.STLDate.toString("yyyy-MM-dd");
         qDebug()<<"BufDate="<<BufDate.toString("yyyy-MM-dd");
         qDebug()<<"Date"<<xmlFileRecordReader.Date;//debug
         qDebug()<<"intDate"<<xmlFileRecordReader.intDate ;*/
@@ -189,7 +189,7 @@ void RecordGetAndPost::RecordAdd(globeset globe)
                     first++;
                    }
                    first->Minute = 1440 -first->intTime + SortByDate[xmlFileRecordReader.intDate]->Record.begin()->intTime;
-                   /********************************************************************/
+          {         /********************************************************************/
                        //这一段代码负责将新添加的记录写入c:/GetAndPost.xml文件中，以供其他程序使用
 
                    first        =   SortByDate[xmlFileRecordReader.intDate-1]->Record.begin();
@@ -227,7 +227,7 @@ qDebug()<<test;
                         Other_root.appendChild(Other_Record);
                         first++;
                    }
-                   /********************************************************************/
+           }        /********************************************************************/
 
 
                }

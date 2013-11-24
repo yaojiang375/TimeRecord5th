@@ -213,7 +213,7 @@ void MainRecordDB::on_ConvertToExcel_clicked()
     QDomProcessingInstruction   Instruction;
     QDomElement                 Row;//将来可升级为OPEN XML格式
     QDomElement                 WorkBook;
-    QDomElement                 Styles;//重要，无此部分无法打开
+    QDomElement                 Styles;//重要，无此部分无法打开// 更正，这应该是样式表模块，可以删掉
         QDomElement                 Style;
         QDomElement                 Alignment;
         QDomElement                 Font;
@@ -230,70 +230,29 @@ void MainRecordDB::on_ConvertToExcel_clicked()
     Save.appendChild(Instruction);
     QTreeWidgetItem         *Item;
     WorkBook        =Save.createElement("Workbook");
-    WorkBook.setAttribute("xmlns","urn:schemas-microsoft-com:office:spreadsheet");
-    WorkBook.setAttribute("xmlns:o","urn:schemas-microsoft-com:office:office");
-    WorkBook.setAttribute("xmlns:x","urn:schemas-microsoft-com:office:excel");
-    WorkBook.setAttribute("xmlns:ss","urn:schemas-microsoft-com:office:spreadsheet");
-    WorkBook.setAttribute("xmlns:html","http://www.w3.org/TR/REC-html40");
-    Styles          =Save.createElement("Styles");
-    Style       =Save.createElement("Style");
-    Style.setAttribute("ss:ID","Default");
-    Style.setAttribute("ss:Name","Normal");
-    Alignment   =Save.createElement("Alignment");
-    Alignment.setAttribute("ss:Vertical","Center");
-    Font        =Save.createElement("Font");
-    Font.setAttribute("ss:FontName",trUtf8("宋体");
-    Font.setAttribute("x:CharSet","134");
-    Font.setAttribute("ss:Size","11");
-    Font.setAttribute("ss:Color","#000000");
-    Style.appendChild(Alignment);
-    Style.appendChild(Font);
-    Styles.appendChild(Style);
-    Style       =Save.createElement("Style");
-    Style.setAttribute("ss:ID","s62");
-    NumberFormat=Save.createElement("NumberFormat");
-    NumberFormat.setAttribute("ss:Format","Short Date");
-    Style.appendChild(NumberFormat);
-    Styles.appendChild(Style);
+        WorkBook.setAttribute("xmlns","urn:schemas-microsoft-com:office:spreadsheet");
+        WorkBook.setAttribute("xmlns:o","urn:schemas-microsoft-com:office:office");
+        WorkBook.setAttribute("xmlns:x","urn:schemas-microsoft-com:office:excel");
 
-    Style       =Save.createElement("Style");
-    Style.setAttribute("ss:ID","s63");
-    NumberFormat=Save.createElement("NumberFormat");
-    NumberFormat.setAttribute("ss:Format","h:mm;@");
-    Style.appendChild(NumberFormat);
-    Styles.appendChild(Style);
 
-    Style       =Save.createElement("Style");
-    Style.setAttribute("ss:ID","s64");
-    NumberFormat=Save.createElement("NumberFormat");
-    NumberFormat.setAttribute("ss:Format","@");
-    Style.appendChild(NumberFormat);
-    Styles.appendChild(Style);
-
-    WorkBook.appendChild(Styles);
     WorkSheet       =Save.createElement("Worksheet");
     WorkSheet.setAttribute("ss:Name",trUtf8("时间统计表"));
     Table           =Save.createElement("Table");
-{    Table.setAttribute("ss:ExpandedColumnCount","6");
-    Table.setAttribute("ss:ExpandedRowCount","10000000");
-    Table.setAttribute( "x:FullColumns","1");
-    Table.setAttribute("x:FullRows","1");
-    Table.setAttribute("ss:DefaultColumnWidth","54");
-    Table.setAttribute("ss:DefaultRowHeight","13.5");
+{
     Column          =Save.createElement("Column");
-    Column.setAttribute("ss:StyleID","s62");
     Column.setAttribute("ss:AutoFitWidth","0");
-    Column.setAttribute("ss:Width","84.75");
     Table.appendChild(Column);
     Column          =Save.createElement("Column");
-    Column.setAttribute("ss:StyleID","s63");
     Column.setAttribute( "ss:AutoFitWidth","0");
     Table.appendChild(Column);
     Column          =Save.createElement("Column");
-    Column.setAttribute("ss:StyleID","s64");
     Column.setAttribute("ss:AutoFitWidth","0");
-    Column.setAttribute("ss:Span","3");
-    Column.setAttribute("ss:Width","84.75");
+    Table.appendChild(Column);
+    Column          =Save.createElement("Column");
+    Column.setAttribute("ss:AutoFitWidth","0");
+    Table.appendChild(Column);
+    Column          =Save.createElement("Column");
+    Column.setAttribute("ss:AutoFitWidth","0");
     Table.appendChild(Column);
     Row             =Save.createElement("Row");
 {
@@ -350,49 +309,42 @@ void MainRecordDB::on_ConvertToExcel_clicked()
 }
     for(int i=0;i<ui->treeWidget->topLevelItemCount();i++)
     {
+
         Row =Save.createElement("Row");
+        Item=ui->treeWidget->topLevelItem(i);
+        Cell=Save.createElement("Cell");
+        Data=Save.createElement("Data");
+        Data.setAttribute("ss:Type","String");
+        Dom_text=Save.createTextNode(Item->text(0));
+        Data.appendChild(Dom_text);
+        Cell.appendChild(Data);
+        Row.appendChild(Cell);
+        Table.appendChild(Row);
         for(int k=0;k<ui->treeWidget->topLevelItem(i)->childCount();k++)
         {
-            Item=ui->treeWidget->topLevelItem(i);
-            Cell=Save.createElement("Cell");
-            Data=Save.createElement("Data");
-            Data.setAttribute("ss:Type","String");
-            Dom_text=Save.createTextNode(Item->text(0));
-            Data.appendChild(Dom_text);
-            Cell.appendChild(Data);
-            Row.appendChild(Cell);
-
+            Row =Save.createElement("Row");
             Item=ui->treeWidget->topLevelItem(i)->child(k);
             for(int z=0;z<Item->columnCount();z++)
             {
                 Cell=Save.createElement("Cell");
                 Data=Save.createElement("Data");
-                switch (z)
+                if(z==3)
                 {
-                case 1:
-                   Data.setAttribute("ss:Type","DateTime");
-                   break;
-                case 3:
                     Data.setAttribute("ss:Type","Number");
-                    break;
-                default:
-                    Data.setAttribute("ss:Type","String");
-                    break;
-                }
-                if(z==1)
-                {
-                    Dom_text=Save.createTextNode("1991-03-20T"+Item->text(z)+":00.000");
                 }
                 else
                 {
-                    Dom_text=Save.createTextNode(Item->text(z));
+                   Data.setAttribute("ss:Type","String");
                 }
+
+                Dom_text=Save.createTextNode(Item->text(z));
                 Data.appendChild(Dom_text);
                 Cell.appendChild(Data);
                 Row.appendChild(Cell);
             }
+            Table.appendChild(Row);
         }
-        Table.appendChild(Row);
+
     }
 
     WorkSheet.appendChild(Table);
