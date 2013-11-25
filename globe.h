@@ -31,7 +31,7 @@ public:
 
     globeset()
     {
-        SmsPos      = "c:/1.csv";
+        SmsPos      = "./ini/1.csv";
         ReadWrong   =FALSE;
         RILFlag     ="！";
         RecFlag     ="。";
@@ -40,14 +40,14 @@ public:
         ReghtRem    ="]";
         LeftRem     ="[";
         MidThing    ="？";
-        iniPos      ="c:/1.ini";//Qdebug
+        iniPos      ="./ini/1.ini";//Qdebug
         STLDate.setDate(2010,01,01);
         STLTime.setHMS(0,0,0);
-        NameConnecrXmlPos ="c:/NameConnecrXmlPos.xml";
-        NameWithSortNumReturnRecordXmlPOS="c:/NameWithSortNumReturnRecordXmlPOS.xml";
-        RecordGetAndPost="c:/RecordGetAndPost.xml";
-        GetAndPostPos   ="c:/GetAndPost.xml";
-        SortTreePos        ="c:/SortTree.xml";
+        NameConnecrXmlPos ="./ini/NameConnecrXmlPos.xml";
+        NameWithSortNumReturnRecordXmlPOS="./ini/NameWithSortNumReturnRecordXmlPOS.xml";
+        RecordGetAndPost="./ini/RecordGetAndPost.xml";
+        GetAndPostPos   ="./ini/GetAndPost.xml";
+        SortTreePos        ="./ini/SortTree.xml";
     }
     void read()
     {

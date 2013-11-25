@@ -84,7 +84,7 @@ bool SmsReader::Read(globeset &globe)
 
 
     }
-    RecXml.XmlSave("c:/RecXml.xml");//读取后的Sms记录（此时尚未转换，转换后也叫这个名字）
+    RecXml.XmlSave("./ini/RecXml.xml");//读取后的Sms记录（此时尚未转换，转换后也叫这个名字）
     return TRUE;
 }
 

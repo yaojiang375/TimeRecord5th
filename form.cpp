@@ -147,3 +147,8 @@ void Form::on_next_clicked()
     a->show();
     this->close();
 }
+
+void Form::on_pushButton_2_clicked()
+{
+    system("explorer http://hi.baidu.com/yaojiang375/item/a353dc0d9310bdf31ef04671");
+}

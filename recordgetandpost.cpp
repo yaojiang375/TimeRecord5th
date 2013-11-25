@@ -79,12 +79,12 @@ void RecordGetAndPost::RecordReadFromFile(globeset globe)
 
 void RecordGetAndPost::RecordAdd(globeset globe)
 {
-    QFile _xml("c:/RecXml.xml");//后期重点，需改成全局变量
+    QFile _xml("./ini/RecXml.xml");//后期重点，需改成全局变量
     _xml.open(QIODevice::ReadOnly);
     QDomDocument doc;
     QDomElement  xml_Body;
 
-{
+
     /********************************************************************/
         //这一段代码负责将已完成记录写入c：/GetAndPost.xml文件中，以供其他程序使用
         QFile   GetAndPost(globe.GetAndPostPos);
@@ -109,7 +109,7 @@ void RecordGetAndPost::RecordAdd(globeset globe)
 
     /********************************************************************/
 
-}
+
 
 
 
@@ -189,7 +189,7 @@ void RecordGetAndPost::RecordAdd(globeset globe)
                     first++;
                    }
                    first->Minute = 1440 -first->intTime + SortByDate[xmlFileRecordReader.intDate]->Record.begin()->intTime;
-          {         /********************************************************************/
+                   /********************************************************************/
                        //这一段代码负责将新添加的记录写入c:/GetAndPost.xml文件中，以供其他程序使用
 
                    first        =   SortByDate[xmlFileRecordReader.intDate-1]->Record.begin();
@@ -227,7 +227,7 @@ qDebug()<<test;
                         Other_root.appendChild(Other_Record);
                         first++;
                    }
-           }        /********************************************************************/
+                   /********************************************************************/
 
 
                }

@@ -13,7 +13,7 @@ SortTheRecordNameLikeDir::SortTheRecordNameLikeDir(QVector<QString> &t, QWidget 
     MenuCount=0;
     connect(ui->treeWidget, SIGNAL(customContextMenuRequested(const QPoint&)),
             this, SLOT(on_treeWidget_customContextMenuRequested(const QPoint&)));
-    QFile txt("C:/test.xml");
+    QFile txt("./ini/test.xml");
     txt.open(QIODevice::ReadOnly);
     QDomDocument read;
     read.setContent(&txt);
@@ -223,7 +223,7 @@ void SortTheRecordNameLikeDir::on_treeWidgetItem_insert()
 
 void SortTheRecordNameLikeDir::on_pushButton_clicked()
 {
-    QFile txt("C:/test.xml");
+    QFile txt("./ini/test.xml");
     txt.open(QIODevice::WriteOnly);
     txt.resize(0);
     QTextStream text(&txt);

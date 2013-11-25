@@ -22,6 +22,9 @@ ReadRecord::ReadRecord(globeset *globek,QWidget *parent) :
     globe=globek;
     QTableWidget    *table=ui->tableWidget;
     table->setColumnCount(7);
+    table->clear();
+    SmsReader   outside_smsreader(*globe);
+    outside_smsreader.Read(*globe);//处理短信记录
     QStringList         Header;
     Header.append(trUtf8("错误标记"));
     Header.append(trUtf8("日期"));
@@ -31,10 +34,39 @@ ReadRecord::ReadRecord(globeset *globek,QWidget *parent) :
     Header.append(trUtf8("待办事项"));
     Header.append(trUtf8("待办事项备注"));
     table->setHorizontalHeaderLabels(Header);
-    table->setColumnWidth(0,60);
+    table->setColumnWidth(0,0);
     table->setColumnWidth(1,90);
     table->setColumnWidth(2,50);
 
+
+    QFile   _TaskFile("./ini/RecXml.xml");
+    _TaskFile.open(QIODevice::ReadOnly);
+     QDomDocument    doc;
+     doc.setContent(&_TaskFile);
+     QDomElement                     root;
+     QDomNode                        Record;
+     root       =doc.firstChildElement("root");
+     Record     =root.firstChildElement("Record");
+
+     table->setRowCount(root.childNodes().count());//设定行数
+     int i=0;//序列号
+     while(!Record.isNull())
+     {
+         qDebug()<<i;
+         table->setItem(i,0,new QTableWidgetItem(Record.firstChildElement("WrongFlag").text()));
+         if(!Record.firstChildElement("WrongFlag").text().compare("True"))
+         {
+             table->item(i,0)->setBackgroundColor(QColor(100,100,100));
+         }
+         table->setItem(i,1,new QTableWidgetItem(Record.firstChildElement("Date").text()));
+         table->setItem(i,2,new QTableWidgetItem(Record.firstChildElement("Time").text()));
+         table->setItem(i,3,new QTableWidgetItem(Record.firstChildElement("Body").firstChildElement("LastThing").text()));
+         table->setItem(i,4,new QTableWidgetItem(Record.firstChildElement("Body").firstChildElement("LastThingRemember").text()));
+         table->setItem(i,5,new QTableWidgetItem(Record.firstChildElement("Body").firstChildElement("NextThing").text()));
+         table->setItem(i,6,new QTableWidgetItem(Record.firstChildElement("Body").firstChildElement("NextThingRemember").text()));
+         i++;
+        Record=Record.nextSibling();
+     }
 
 
 
@@ -62,12 +94,12 @@ void ReadRecord::on_ShowButton_clicked()
     Header.append(trUtf8("待办事项"));
     Header.append(trUtf8("待办事项备注"));
     table->setHorizontalHeaderLabels(Header);
-    table->setColumnWidth(0,60);
+    table->setColumnWidth(0,0);
     table->setColumnWidth(1,90);
     table->setColumnWidth(2,50);
 
 
-    QFile   _TaskFile("C:/RecXml.xml");
+    QFile   _TaskFile("./ini/RecXml.xml");
     _TaskFile.open(QIODevice::ReadOnly);
      QDomDocument    doc;
      doc.setContent(&_TaskFile);
@@ -77,11 +109,6 @@ void ReadRecord::on_ShowButton_clicked()
      Record     =root.firstChildElement("Record");
 
      table->setRowCount(root.childNodes().count());//设定行数
-
-
-
-
-
      int i=0;//序列号
      while(!Record.isNull())
      {

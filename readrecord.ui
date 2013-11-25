@@ -16,14 +16,14 @@
   <widget class="QPushButton" name="ShowButton">
    <property name="geometry">
     <rect>
-     <x>100</x>
+     <x>90</x>
      <y>0</y>
      <width>81</width>
      <height>51</height>
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">font: 11pt &quot;楷体&quot;;</string>
+    <string notr="true"/>
    </property>
    <property name="text">
     <string>显示报表</string>
@@ -42,7 +42,7 @@
   <widget class="QPushButton" name="AddToRecordDB">
    <property name="geometry">
     <rect>
-     <x>270</x>
+     <x>460</x>
      <y>0</y>
      <width>101</width>
      <height>51</height>
@@ -55,14 +55,14 @@
   <widget class="QPushButton" name="ShowRecordDB">
    <property name="geometry">
     <rect>
-     <x>450</x>
+     <x>270</x>
      <y>0</y>
      <width>81</width>
      <height>51</height>
     </rect>
    </property>
    <property name="text">
-    <string>显示总记录</string>
+    <string>进入总记录</string>
    </property>
   </widget>
  </widget>

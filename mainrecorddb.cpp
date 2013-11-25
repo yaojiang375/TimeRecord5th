@@ -33,7 +33,7 @@ void MainRecordDB::on_ShowButton_clicked()
     /**************************************************
      * <xml大杀器，高能慎入>
      *************************************************/
-
+    ui->treeWidget->clear();
     QFile wojiuluanqiminglezhadi(globe->RecordGetAndPost);
     wojiuluanqiminglezhadi.open(QIODevice::ReadOnly);
     QDomDocument    doc;
@@ -92,9 +92,9 @@ void MainRecordDB::on_pushButton_clicked()
 {
     QFile testFileExist ;
 
-    if(!testFileExist.exists("C:/test.xml"))
+    if(!testFileExist.exists("./ini/test.xml"))
     {
-        QFile txt("C:/test.xml");
+        QFile txt("./ini/test.xml");
         txt.open(QIODevice::ReadWrite);
         QTextStream text(&txt);
         QDomDocument read;
@@ -184,7 +184,7 @@ void MainRecordDB::FlushMap()
 {
     Map_intToSortString.clear();
     Map_ItemToSortString.clear();
-    QFile txt("C:/test.xml");
+    QFile txt("./ini/test.xml");
     txt.open(QIODevice::ReadOnly);
     QDomDocument read;
     read.setContent(&txt);
