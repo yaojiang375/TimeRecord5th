@@ -8,6 +8,12 @@
 #include <QWidget>
 #include <QList>
 #include "readrecord.h"
+
+#include <QNetworkAccessManager>
+#include <QUrl>
+#include <QNetworkReply>
+#include <QMessageBox>
+
 #define  READLENGTH 9999
 namespace Ui {
 class Form;
@@ -22,7 +28,6 @@ public:
     ~Form();
 
 
-
 private slots:
     void on_pushButton_clicked();
 
@@ -32,6 +37,7 @@ private slots:
 
     void on_pushButton_2_clicked();
 
+    void finishedSlot(QNetworkReply* Reply);//检测更新
 private:
 
     Ui::Form *ui;
@@ -43,6 +49,11 @@ private:
     QString             judgebuf;
     QList<QString>          wrongstring;
 
+
+    QString version;
+    QString UpdateVersion;
+    QString UpdateAdress;
+    QNetworkAccessManager   *manager;
 };
 
 #endif // FORM_H

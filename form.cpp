@@ -1,7 +1,8 @@
 #include "form.h"
 #include "ui_form.h"
 #include <QFileDialog>
-#include <iostream>
+#include "checkupdate.h"
+
 Form::Form(globeset *globek, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Form)
@@ -9,6 +10,11 @@ Form::Form(globeset *globek, QWidget *parent) :
     ui->setupUi(this);
     globe=globek;
     ui->next->hide();
+
+    //检测更新
+    version="0.71";
+    manager = new QNetworkAccessManager(this);
+    QObject::connect(manager, SIGNAL(finished(QNetworkReply*)),this, SLOT(finishedSlot(QNetworkReply*)));
 }
 
 Form::~Form()
@@ -150,5 +156,34 @@ void Form::on_next_clicked()
 
 void Form::on_pushButton_2_clicked()
 {
-    system("explorer http://hi.baidu.com/yaojiang375/item/a353dc0d9310bdf31ef04671");
+    UpdateAdress="http://timerecord-timerecord.stor.sinaapp.com/TimeRecordVersion_UpdateAdress.txt";
+    QUrl url(UpdateAdress);
+    manager->get(QNetworkRequest(url));
+}
+
+void Form::finishedSlot(QNetworkReply *Reply)
+{
+    int i;
+    i=1;
+    if(Reply->error()==QNetworkReply::NoError)
+    {
+        QByteArray bytes =Reply->readAll();
+        QString    Read  =QString::fromUtf8(bytes);
+        qDebug()<<Read;
+        if(Read.size()<5)
+        {
+            return;
+        }
+        UpdateVersion    =Read.split("_")[0];
+        UpdateAdress     =Read.split("_")[1];
+        if(version!=UpdateVersion)
+        {
+            if(QMessageBox::question(NULL,trUtf8("发现新版本"),trUtf8("检测到新版本，是否更新？"),QMessageBox::Yes,QMessageBox::No))
+            {
+                UpdateVersion="explorer "+UpdateAdress;
+                qDebug()<<UpdateVersion;
+                system(UpdateVersion.toStdString().c_str());
+            }
+        }
+    }
 }

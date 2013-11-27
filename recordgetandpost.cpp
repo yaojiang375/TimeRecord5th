@@ -1,430 +1,297 @@
 #include "recordgetandpost.h"
 
-
+#define   RECORDSERIALNUMBER  (RecordSerialNumber:LastRecord?NextRecord)  //转换
+#define   _RECORDSERIALNUMBER (RecordSerialNumber:NextRecord?LastRecord) //逆转换
 RecordGetAndPost::RecordGetAndPost()
 {
-    _ReciveRecord   *atp1;
-    memset(SortByDate,NULL,sizeof(atp1)*RECORDLENGTH);
 
-    ErrorList.clear();
 }
 
 void RecordGetAndPost::RecordReadFromFile(globeset globe)
 {
-    QFile   fanzhengjiaoshenmemingziyezhiyongzheyici(globe.RecordGetAndPost);
-    fanzhengjiaoshenmemingziyezhiyongzheyici.open(QIODevice::ReadOnly);
-    QDomDocument doc;
-    doc.setContent(&fanzhengjiaoshenmemingziyezhiyongzheyici);
-    QDomElement   docElem;
-    QDomNode      Node;
-    QDomElement   Flag;
-    QDomElement   CFlag;
-    QDomElement   NFlag;
-    QDomElement   SFlag;
-
-    QDomElement   Record;
-    QDomElement   Thing;
-    QDomElement   ThingRem;
-    QDomElement   Date;
-    QDomElement   Time;
-    QDomElement   Minute;
-
-    QDomElement   Day;
-    docElem       =doc.documentElement();
-    Node          =docElem.firstChild();
-
-    _ReciveRecord   *atp;
-    memset(SortByDate,NULL,sizeof(atp)*RECORDLENGTH);//清空
-    int i = 0;
-    while(!Node.isNull())
+    QFile   XmlReader(globe.RecordGetAndPost);//读取原纪录
+    XmlReader.open(QIODevice::ReadOnly);
+    QDomDocument    XML_Doc;
+    XML_Doc.setContent(&XmlReader);
+    QDomElement     Day;
+    DayItem*        XmlDay;
+    QDomElement     Record;
+    QDomElement     Node;//获取Record的各项属性
+    RecordItem*     XmlRecord;
+    Day=XML_Doc.firstChildElement("root");
+    Day=Day.firstChildElement("Day");
+    /*******************************/
+    //开始读取
+    while(!Day.isNull())
     {
-        Day    = Node.firstChildElement("Day");
-        i      = Day.attribute("DayNumber").toInt();
-        SortByDate[i]   = new EndRecordType;//用于标记每一日期的排序状况，存在于日期记录结尾处。话说1000行以上的软件真需要一份文档啊。。。
-        Flag   = Day.firstChildElement("Flag");
-        CFlag  = Flag.firstChildElement("CompleteFlag");
-        NFlag  = Flag.firstChildElement("NeedToFigure");
-        SFlag  = Flag.firstChildElement("SortedFlag");
-        SortByDate[i]->CompleteFlag = CFlag.attribute("bool").toInt();
-        SortByDate[i]->NeedToFigure = NFlag.attribute("bool").toInt();
-        SortByDate[i]->SortedFlag   = SFlag.attribute("bool").toInt();
-        Record = Day.firstChildElement("Record");
+        XmlDay      =   new DayItem;
+        XmlDay->DayNumber=Day.attribute("DayNumber").toInt();
+        Record      =   Day.firstChildElement("Record");
         while(!Record.isNull())
         {
-            Date    = Record.firstChildElement("Date");
-            Time    = Record.firstChildElement("Time");
-            Thing   = Record.firstChildElement("Thing");
-            ThingRem= Record.firstChildElement("ThingRem");
-
-            ReadBuf.Date    =Date.text();
-            ReadBuf.Time    =Time.text();
-            ReadBuf.intDate =Date.attribute("intDate").toInt();
-            ReadBuf.intTime =Date.attribute("intTime").toInt();
-            ReadBuf.Minute  =Minute.text().toInt();
-            ReadBuf.Thing   =Thing.text();
-            ReadBuf.ThingRem=ThingRem.text();
-
-            SortByDate[i]->Record.append(ReadBuf);
-
-            Record  = Record.nextSiblingElement("Record");
+            XmlRecord                   =   new    RecordItem;
+            Node                        =   Record.firstChildElement("Date");//Record为什么要有日期？冗余啊这是
+            XmlRecord->Data             =   Node.text();
+            XmlRecord->intData          =   Node.attribute("intDate").toInt();//这里Data写错了，待会儿改过来
+            Node                        =   Record.firstChildElement("Time");
+            XmlRecord->Time             =   Node.text();
+            XmlRecord->intTime          =   Node.attribute("intTime").toInt();
+            Node                        =   Record.firstChildElement("Minute");
+            XmlRecord->Minute           =   Node.text().toInt();
+            Node                        =   Record.firstChildElement("Thing");
+            XmlRecord->Thing            =   Node.text();
+            Node                        =   Record.firstChildElement("ThingRem");
+            XmlRecord->ThingRem         =   Node.text();
+            Record                      =   Record.nextSiblingElement("Record");
+            XmlDay->Children.append(XmlRecord);
+            qDebug()<<"CheckDuplicate = "<<XmlRecord->ReturnDiv();
+            CheckDuplicate.insert(XmlRecord->ReturnDiv());//测重标记
         }
-
-
-        Node    =   Node.nextSibling();
+        qSort(XmlDay->Children.begin(),XmlDay->Children.end(),RecordLessThan);
+        Day=Day.nextSiblingElement("Day");
+        XmlRoot.DaySerial.append(XmlDay);
     }
-
+    qSort(XmlRoot.DaySerial.begin(),XmlRoot.DaySerial.end(),DayLessThan);
+    XmlReader.close();
+    /*******************************/
     return;
-
 }
 
 void RecordGetAndPost::RecordAdd(globeset globe)
 {
-    QFile _xml("./ini/RecXml.xml");//后期重点，需改成全局变量
-    _xml.open(QIODevice::ReadOnly);
-    QDomDocument doc;
-    QDomElement  xml_Body;
 
-
-    /********************************************************************/
-        //这一段代码负责将已完成记录写入c：/GetAndPost.xml文件中，以供其他程序使用
-        QFile   GetAndPost(globe.GetAndPostPos);
-        GetAndPost.open(QIODevice::ReadWrite);
-        QTextStream    jzyzy(&GetAndPost);
-
-        QDomDocument                    Other_Save;
-        QDomProcessingInstruction       Other_InsTruction;
-
-        QDomElement                     Other_root;
-        QDomElement                     Other_Record;
-        QDomElement                     Other_Date;
-        QDomElement                     Other_Time;
-        QDomElement                     Other_Minute;
-        QDomElement                     Other_Thing;
-        QDomElement                     Other_ThingRem;
-        QDomText                        Other_Text;
-
-        Other_InsTruction = Other_Save.createProcessingInstruction("xml","version=\"1.0\" encoding = \"UTF-8\"");
-        Other_Save.appendChild(Other_InsTruction);
-        Other_root        = Other_Save.createElement("Other_root");
-
-    /********************************************************************/
-
-
-
-
-
-
-    QDomElement  xml_Record;
-    doc.setContent(&_xml);
-    xml_Record  =doc.firstChildElement("root");
-    xml_Record  =xml_Record.firstChildElement("Record");
-
-    ReadBuf.clear();
-    ErrorList.clear();
-    while(!xml_Record.isNull())
+    QFile   XmlReader("./ini/RecXml.xml");//读取初步转换后的短信记录
+    XmlReader.open(QIODevice::ReadOnly);
+    QDomDocument    XML_Doc;
+    XML_Doc.setContent(&XmlReader);
+    QDomElement     Record;
+    QDomElement     Node;
+    bool     RecordSerialNumber=0;//标记先后顺序，便于计算间隔时间//存疑
+    Record          =   XML_Doc.firstChildElement("root");
+    Record          =   Record.firstChildElement("Record");
+    RecordItem      *LRecord=NULL;
+    RecordItem      *NRecord=NULL;
+    RecordItem      *ThisRecord=NULL;
+    RecordItem      *LastRecord=NULL;
+    DayItem         *NewDay =NULL;
+    DayItem         *LastDay=NULL;//新添加的日期记录
+    while(!Record.isNull())
     {
-        xmlFileRecordReader.Date = xml_Record.firstChildElement("Date").text();
-        xmlFileRecordReader.Time = xml_Record.firstChildElement("Time").text();
-        xml_Body                 = xml_Record.firstChildElement("Body");
-        xmlFileRecordReader.LastThing = xml_Body.firstChildElement("LastThing").text();
-        xmlFileRecordReader.LastRem = xml_Body.firstChildElement("LastthingRemember").text();
-        xmlFileRecordReader.NextThing = xml_Body.firstChildElement("NextThing").text();
-        xmlFileRecordReader.NextRem = xml_Body.firstChildElement("NextThingRemember").text();
-
-        BufDate=QDate::fromString(xmlFileRecordReader.Date,"yyyy-MM-dd");
-        BufTime=QTime::fromString(xmlFileRecordReader.Time,"hh:mm");
-
-        xmlFileRecordReader.intDate =globe.STLDate.daysTo(BufDate);
-        xmlFileRecordReader.intTime =globe.STLTime.msecsTo(BufTime)/60000;//只记录分钟数就够了
-
-        //xmlFileRecordReader.Debugprintf();
-/*      qDebug()<<"globe.Date="<<globe.STLDate.toString("yyyy-MM-dd");
-        qDebug()<<"BufDate="<<BufDate.toString("yyyy-MM-dd");
-        qDebug()<<"Date"<<xmlFileRecordReader.Date;//debug
-        qDebug()<<"intDate"<<xmlFileRecordReader.intDate ;*/
-        if(SortByDate[xmlFileRecordReader.intDate]==NULL)//没有记录
+        RecordSerialNumber=!RecordSerialNumber;
+        if(RecordSerialNumber)
         {
-            if(SortByDate[xmlFileRecordReader.intDate-1]!=NULL)//当intDate值为0时怎么办？
-            {
-                qDebug()<<"intDate"<<xmlFileRecordReader.intDate ;//Debug
-                qDebug()<<"SortByDate[xmlFileRecordReader.intDate-1]="<<SortByDate[xmlFileRecordReader.intDate-1];//Debug
+            LRecord  =new RecordItem;
+            ThisRecord  =LRecord;
+            LastRecord=NRecord;
+        }
+        else
+        {
+            NRecord=new RecordItem;
+            ThisRecord  =NRecord;
+            LastRecord=LRecord;
+        }
+
+        Node                         =      Record.firstChildElement("Date");
+        ThisRecord->Data             =      Node.text();
+        Node                         =      Record.firstChildElement("Time");
+        ThisRecord->Time             =      Node.text();
+        Node                         =      Record.firstChildElement("Body");
+        ThisRecord->Thing            =      Node.firstChildElement("NextThing").text().trimmed();
+        qDebug()<<"ThisRecord div = "<<ThisRecord->ReturnDiv();
+        if(CheckDuplicate.contains(ThisRecord->ReturnDiv()))
+        {
+            Record                       =      Record.nextSiblingElement("Record");
+            continue;
+        }
+        ThisRecord->ThingRem         =      Node.firstChildElement("NextThingRemember").text();
+        ThisRecord->intData          =      globe.STLDate.daysTo(QDate::fromString(ThisRecord->Data,"yyyy-MM-dd"));
+        ThisRecord->intTime          =      globe.STLTime.secsTo(QTime::fromString(ThisRecord->Time,"hh:mm"))/60;
+        LastDay                      =      NewDay;
+        NewDay                       =      XmlRoot.findDayItem(0,XmlRoot.DaySerial.count()-1,ThisRecord->intData);
+        if(LastDay!=NewDay&&LastDay!=NULL)//更新日期时对前一日期进行排序
+        {
+            qSort(LastDay->Children.begin(),LastDay->Children.end(),RecordLessThan);
+        }
+        if(NewDay!=NULL)
+        {
+            Node                     =      Node.firstChildElement("LastThing");
+                int     i=NewDay->Children.count()-1;
+                for(;NewDay->Children[i]->intTime>ThisRecord->intTime&&i>=0;i--)//原初：第一个大于iniTime的值的前一个位置//修改：第一个小于iniTime的位置//影响速度，可以直接用last进行处理
                 {
-                 if(xmlFileRecordReader.LastThing.isEmpty())
-                 {}
-                 else
-                 {
-                     (SortByDate[xmlFileRecordReader.intDate-1]->Record.end()-1)->Thing     = xmlFileRecordReader.LastThing;
-                 }
-                 if(xmlFileRecordReader.LastRem.isEmpty())
-                 {}
-                 else
-                 {
-                     SortByDate[xmlFileRecordReader.intDate-1]->Record.last().ThingRem  =     (SortByDate[xmlFileRecordReader.intDate-1]->Record.last()).ThingRem + "&__&" +xmlFileRecordReader.LastRem;
-                 }
-                }//针对Last的检测,将Last写回
-
-                qDebug()<<"SortByDate[xmlFileRecordReader.intDate-1]->Record.first().Date"<<SortByDate[xmlFileRecordReader.intDate-1]->Record.first().Date;//Debug;
-
-
-                SortByDate[xmlFileRecordReader.intDate] = new EndRecordType;
-                ReadBuf               = xmlFileRecordReader;
-                SortByDate[xmlFileRecordReader.intDate]->append(ReadBuf);//此处可以优化，只写入数据一次，不修改FigureFlag
-                SortByDate[xmlFileRecordReader.intDate-1]->CompleteFlag = TRUE; //关闭写入入口
-
-               if(SortByDate[xmlFileRecordReader.intDate-1]->SortedFlag)
-               {}
-               else
-               {
-                   SortByDate[xmlFileRecordReader.intDate-1]->Sort();
-                   //SortByDate[xmlFileRecordReader.intDate-1]->qSort(0,SortByDate[xmlFileRecordReader.intDate-1]->Record.count());//排序
-                   SortByDate[xmlFileRecordReader.intDate-1]->SortedFlag = TRUE;//排序
-               }
-               if(SortByDate[xmlFileRecordReader.intDate-1]->NeedToFigure)
-               {
-                   //计算分钟数
-                   _ReciveRecord::iterator first = SortByDate[xmlFileRecordReader.intDate-1]->Record.begin();
-                   while((first+1) !=SortByDate[xmlFileRecordReader.intDate-1]->Record.end())
-                   {
-                    first->Minute = (first+1)->intTime-first->intTime;
-                    first++;
-                   }
-                   first->Minute = 1440 -first->intTime + SortByDate[xmlFileRecordReader.intDate]->Record.begin()->intTime;
-                   /********************************************************************/
-                       //这一段代码负责将新添加的记录写入c:/GetAndPost.xml文件中，以供其他程序使用
-
-                   first        =   SortByDate[xmlFileRecordReader.intDate-1]->Record.begin();
-int test=0;
-                   while(first!=SortByDate[xmlFileRecordReader.intDate-1]->Record.end())
-                   {
-                        Other_Record =   Other_Save.createElement("Other_Record");
-                        Other_Date   =   Other_Save.createElement("Other_Date");
-                        Other_Time   =   Other_Save.createElement("Other_Time");
-                        Other_Minute =   Other_Save.createElement("Other_Minute");
-                        Other_Thing  =   Other_Save.createElement("Other_Thing");
-                        Other_ThingRem=  Other_Save.createElement("Other_ThingRem");
-test++;
-qDebug()<<test;
-                        Other_Record.setAttribute("intDate",first->intDate);
-                        Other_Date.setAttribute("intDate",first->intDate);
-                        Other_Time.setAttribute("intTime",first->intTime);
-                        Other_Minute.setAttribute("Minute",first->Minute);
-
-                        Other_Text      =Other_Save.createTextNode(first->Date);
-                        Other_Date.appendChild(Other_Text);
-                        Other_Text      =Other_Save.createTextNode(first->Time);
-                        Other_Time.appendChild(Other_Text);
-                        Other_Text      =Other_Save.createTextNode(first->Thing);
-                        Other_Thing.appendChild(Other_Text);
-                        Other_Text      =Other_Save.createTextNode(first->ThingRem);
-                        Other_ThingRem.appendChild(Other_Text);
-
-                        Other_Record.appendChild(Other_Date);
-                        Other_Record.appendChild(Other_Time);
-                        Other_Record.appendChild(Other_Minute);
-                        Other_Record.appendChild(Other_Thing);
-                        Other_Record.appendChild(Other_ThingRem);
-
-                        Other_root.appendChild(Other_Record);
-                        first++;
-                   }
-                   /********************************************************************/
-
-
-               }
-               else
-               {}
-
-
-            }
-            else//全新
-            {
-                SortByDate[xmlFileRecordReader.intDate] = new EndRecordType;
-                ReadBuf               = xmlFileRecordReader;
-                SortByDate[xmlFileRecordReader.intDate]->append(ReadBuf);//此处可以优化，只写入数据一次，不修改FigureFlag
-            }
+                    qDebug()<<NewDay->Children.count();//Only test;
+                }
+                if(i>=0)
+                {
+                LastRecord=NewDay->Children[i];
+                LastRecord->Minute    =ThisRecord->intTime-LastRecord->intTime;
+                if(Node.text().size()!=0)
+                {
+                    LastRecord->Thing      =Node.text();
+                    LastRecord->ThingRem   =Node.nextSiblingElement("LastThingRemember").text();
+                }
+                NewDay->Children.insert(i+1,ThisRecord);
+                }
+                else
+                {
+                    NewDay->Children.insert(0,ThisRecord);//出现这种情况一般都是故障了
+                }
 
         }
         else
         {
-            ReadBuf               = xmlFileRecordReader;
-            if(SortByDate[xmlFileRecordReader.intDate]->CheckDuplicate(ReadBuf))
+            NewDay                   =       new DayItem;
+            NewDay->DayNumber        =       ThisRecord->intData;
+            NewDay->Children.append(ThisRecord);
+            XmlRoot.DaySerial.append(NewDay);            
+            LastDay                  =       XmlRoot.findDayItem(0,XmlRoot.DaySerial.count()-1,NewDay->DayNumber-1);
+            if(LastDay!=NULL)
             {
-                ErrorList.append(xmlFileRecordReader.Date + xmlFileRecordReader.Time);
-                //怎么返回错误？抛异常？
+                //qSort(LastDay->Children.begin(),LastDay->Children.end(),RecordLessThan);//对前一日记录进行排序//是否必要？//必要，因为前一日期是否有序为未知事件
+                LastRecord=LastDay->Children.last();
+                LastRecord->Minute   =       ThisRecord->intTime+24*60-LastRecord->intTime;
+                Node                     =       Node.firstChildElement("LastThing");
+                if(Node.text().size()!=0)
+                {
+                    LastRecord->Thing      =Node.text();
+                    LastRecord->ThingRem   =Node.nextSiblingElement("LastThingRemember").text();
+                }
             }
             else
             {
-                if(!xmlFileRecordReader.LastThing.isEmpty())
-                {
-                    SortByDate[xmlFileRecordReader.intDate]->Record.last().Thing = xmlFileRecordReader.LastThing;
-                }
-                if(!xmlFileRecordReader.LastRem.isEmpty())
-                {
-                    SortByDate[xmlFileRecordReader.intDate]->Record.last().ThingRem=xmlFileRecordReader.LastRem;
-                }//last处理
-
-                SortByDate[xmlFileRecordReader.intDate]->append(ReadBuf);
-
+                Record                       =      Record.nextSiblingElement("Record");
+                continue;
             }
         }
-
-        xml_Record      =   xml_Record.nextSiblingElement("Record");
+        Record                       =      Record.nextSiblingElement("Record");
     }
-
-    /********************************************************************/
-        //这一段代码负责将新添加的记录写入c:/GetAndPost.xml文件中，以供其他程序使用
-
-    Other_Save.appendChild(Other_root);
-
-    Other_Save.save(jzyzy,4);
-    /********************************************************************/
-    return;
+    XmlReader.close();
 
 }
-
-
 
 void RecordGetAndPost::RecordSave(globeset globe)
 {
-    QFile _xml(globe.RecordGetAndPost);
-    _xml.open(QIODevice::ReadWrite);
-    QTextStream _XMLreader(&_xml);
-
-    QDomDocument doc;
-    QDomProcessingInstruction instruction;
-    QDomElement root            ;
-
-    QDomElement xml_Flag        ;
-    QDomElement xml_CompleteFlag        ;
-    QDomElement xml_NeedToFigureFlag        ;
-    QDomElement xml_SortedFlag        ;
-
-    QDomElement xml_Day         ;
-
-    QDomElement xml_Record      ;
-      QDomElement xml_Date        ;
-      QDomElement xml_Time        ;
-      QDomElement xml_minute      ;
-      QDomElement xml_Thing       ;
-      QDomElement xml_ThingRem    ;
-
-    QDomText    xml_Text        ;
-
-    int i = 0;
-    for(;i<RECORDLENGTH&&SortByDate[i]==NULL;i++)
+    QFile           Xml_txt(globe.RecordGetAndPost);//转换
+    Xml_txt.open(QIODevice::ReadWrite);
+    Xml_txt.resize(0);
+    QTextStream     Xml_Text(&Xml_txt);
+    QDomDocument    XML_Doc;
+    QDomProcessingInstruction   Instruction;
+    QDomElement     root;
+    QDomElement     Day;
+    DayItem         *Day_Item;
+    int             DayCount;
+    QDomElement     Record;
+    RecordItem      *Record_Item;
+    int             RecordCount;
+    QDomElement     Node;
+    QDomText        Text;
+    Instruction     =       XML_Doc.createProcessingInstruction("xml","version=\"1.0\" encoding = \"UTF-8\"");
+    XML_Doc.appendChild(Instruction);
+    root            =       XML_Doc.createElement("root");
+    for(DayCount=0;DayCount<XmlRoot.DaySerial.count();DayCount++)
     {
-
-    }
-
-    instruction = doc.createProcessingInstruction("xml","version=\"1.0\" encoding = \"UTF-8\"");
-    doc.appendChild(instruction);
-    root        = doc.createElement("root");
-    root.setAttribute("RecordBegin",i);
-    for(;i<RECORDLENGTH;i++)//以空间换计算，此处可以进一步优化,检测NULL
-    {
-        if(SortByDate[i]!=NULL)
+        Day_Item    =       XmlRoot.DaySerial[DayCount];
+        Day         =       XML_Doc.createElement("Day");
+        Day.setAttribute("DayNumber",Day_Item->Children.first()->intData);
+        for(RecordCount=0;RecordCount<Day_Item->Children.count();RecordCount++)
         {
-        xml_Day =doc.createElement("Day");
-        xml_Day.setAttribute("DayNumber",i);
-        int z =0;//记录每天的事件数，从0开始
+            Record_Item =   Day_Item->Children[RecordCount];
+            Record      =   XML_Doc.createElement("Record");
+            Node        =   XML_Doc.createElement("Date");
+            Node.setAttribute("intDate",Record_Item->intData);
+            Text        =   XML_Doc.createTextNode(Record_Item->Data);
+            Node.appendChild(Text);
+            Record.appendChild(Node);
 
-        xml_Flag            =doc.createElement("Flag");
-        xml_CompleteFlag    =doc.createElement("CompleteFlag");
-        xml_CompleteFlag.setAttribute("bool",SortByDate[i]->CompleteFlag);
-        xml_NeedToFigureFlag=doc.createElement("NeedToFigure");
-        xml_NeedToFigureFlag.setAttribute("bool",SortByDate[i]->NeedToFigure);
-        xml_SortedFlag=doc.createElement("SortedFlag");
-        xml_SortedFlag.setAttribute("bool",SortByDate[i]->SortedFlag);
+            Node        =   XML_Doc.createElement("Time");
+            Node.setAttribute("intTime",Record_Item->intTime);
+            Text        =   XML_Doc.createTextNode(Record_Item->Time);
+            Node.appendChild(Text);
+            Record.appendChild(Node);
 
-        xml_Flag.appendChild(xml_CompleteFlag);
-        xml_Flag.appendChild(xml_NeedToFigureFlag);
-        xml_Flag.appendChild(xml_SortedFlag);
+            Node        =   XML_Doc.createElement("Minute");
+            QString         Minute_Buf;
+            Minute_Buf.setNum(Record_Item->Minute);
+            Text        =   XML_Doc.createTextNode(Minute_Buf);//&&
+            Node.appendChild(Text);
+            Record.appendChild(Node);
 
-        while(!SortByDate[i]->Record.isEmpty())
-        {
-            xml_Record  = doc.createElement("Record");
-            xml_Date    = doc.createElement("Date");
-            xml_Date.setAttribute("intDate",SortByDate[i]->Record.first().intDate);
-            xml_Time    = doc.createElement("Time");
-            xml_Time.setAttribute("intTime",SortByDate[i]->Record.first().intTime);
-            xml_minute  = doc.createElement("Minute");
-            xml_Thing   = doc.createElement("Thing");
-            xml_ThingRem= doc.createElement("ThingRem");
+            Node        =   XML_Doc.createElement("Thing");
+            Text        =   XML_Doc.createTextNode(Record_Item->Thing);
+            Node.appendChild(Text);
+            Record.appendChild(Node);
 
-
-
-            z++;
-            xml_Record.setAttribute("RecordNum",z);
-
-            QString fromint;
-            xml_Text = doc.createTextNode(SortByDate[i]->Record.first().Date);
-            xml_Date.appendChild( xml_Text);
-            xml_Text = doc.createTextNode(SortByDate[i]->Record.first().Time);
-            xml_Time.appendChild( xml_Text);
-            xml_Text = doc.createTextNode(fromint.setNum(SortByDate[i]->Record.first().Minute));
-            xml_minute.appendChild( xml_Text);
-            xml_Text = doc.createTextNode(SortByDate[i]->Record.first().Thing);
-            xml_Thing.appendChild( xml_Text);
-            xml_Text = doc.createTextNode(SortByDate[i]->Record.first().ThingRem);
-            xml_ThingRem.appendChild( xml_Text);
-
-            xml_Record.appendChild(xml_Date);
-            xml_Record.appendChild(xml_Time);
-            xml_Record.appendChild(xml_minute);
-            xml_Record.appendChild(xml_Thing);
-            xml_Record.appendChild(xml_ThingRem);
-
-            xml_Day.appendChild(xml_Record);
-
-            SortByDate[i]->Record.pop_front();
+            Node        =   XML_Doc.createElement("ThingRem");
+            Text        =   XML_Doc.createTextNode(Record_Item->ThingRem);
+            Node.appendChild(Text);
+            Record.appendChild(Node);
+            Day.appendChild(Record);
         }
-        xml_Day.appendChild(xml_Flag);
-        root.appendChild(xml_Day);
-        }
+        root.appendChild(Day);
     }
-    doc.appendChild(root);
-    doc.save(_XMLreader,4);
+    XML_Doc.appendChild(root);
+    XML_Doc.save(Xml_Text,4);
+    Xml_txt.close();
+}
+
+bool RecordLessThan(RecordItem* first, RecordItem* next)
+{
+    return first->intTime < next->intTime;
+}
+
+bool DayLessThan(DayItem * first, DayItem * next)
+{
+    return first->DayNumber < next->DayNumber;
 }
 
 
-bool GaE::CheckDuplicate(_RecordType a)
+
+
+
+DayItem *XMLRoot::findDayItem(int begin, int end, int intDate)
 {
-    QVector<_RecordType>::iterator first = Record.begin();
-    QVector<_RecordType>::iterator end   = Record.end()  ;
-    while(first != end)
+    //假定是从小到大排列
+    if(end<begin)
     {
-        if(first->intTime == a.intTime)
-        {
-            return TRUE;
-        }
-        else
-        {
-            first++;
-        }
+        //初次运行
+        return NULL;
     }
-    return FALSE;
+
+    if(DaySerial[((begin+end)/2)]->DayNumber==intDate)
+    {
+        return DaySerial[((begin+end)/2)];
+    }
+    if((end-begin)<=3)
+    {
+        while(begin<=end)
+        {
+            if(DaySerial[begin]->DayNumber==intDate)
+            {
+                return DaySerial[begin];
+            }
+            begin++;
+        }
+        return NULL;
+    }
+    if(DaySerial[((begin+end)/2)]->DayNumber>intDate)
+    {
+        return findDayItem(begin,((begin+end)/2)-1,intDate);//
+    }
+    else
+    {
+        return findDayItem(((begin+end)/2)+1,end,intDate);
+    }
 }
 
-bool GaE::append(_RecordType a)
-{
-     Record.append(a);
-     NeedToFigure=TRUE;
-     return TRUE;
-}
 
-bool GaE::update(_RecordType a)//更新指定时间的内容
+RecordItem::RecordItem()//初始化
 {
-    _ReciveRecord::iterator t = Record.begin();
-    for(;t->intTime!=a.intTime&&t!=Record.end();t++)
-    {}
-        if(t==Record.end())
-        {
-            return FALSE;
-        }
-        else
-        {
-            a.Minute = t->Minute;
-            *t = a;
-            return TRUE;
-        }
+    this->Data="";
+    this->intData=0;
+    this->intTime=0;
+    this->Minute=-1;
+    this->Serial_Number=0;
+    this->Thing="";
+    this->ThingRem="";
+    this->Time="";
 }
