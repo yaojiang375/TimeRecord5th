@@ -22,20 +22,20 @@ SortTheRecordNameLikeDir::SortTheRecordNameLikeDir(QVector<QString> &t, QWidget 
     /*********************
      *读取XML
      ********************/
-    QDomElement Data=read.firstChildElement("root").firstChildElement("Node");
-    while(!Data.isNull())
+    QDomElement Date=read.firstChildElement("root").firstChildElement("Node");
+    while(!Date.isNull())
     {
         QStringList comment;
-        comment<<Data.firstChildElement("Sort_ID").text()<<Data.firstChildElement("Quick_Num").text();
+        comment<<Date.firstChildElement("Sort_ID").text()<<Date.firstChildElement("Quick_Num").text();
         QTreeWidgetItem *RootItem=new QTreeWidgetItem(comment);
-        if(!Data.firstChildElement("Node").isNull())
+        if(!Date.firstChildElement("Node").isNull())
         {
-            QDomElement buf=Data.firstChildElement("Node");
+            QDomElement buf=Date.firstChildElement("Node");
             ReturnItemList_XML(buf,RootItem);
         }
         RootItem->setFlags(RootItem->flags()|Qt::ItemIsEditable);
         ui->treeWidget->addTopLevelItem(RootItem);
-        Data=Data.nextSiblingElement("Node");
+        Date=Date.nextSiblingElement("Node");
     }
     QStringList comment;
     if(t.size()>0)

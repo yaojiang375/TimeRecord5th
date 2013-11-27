@@ -1,7 +1,6 @@
 #include "form.h"
 #include "ui_form.h"
 #include <QFileDialog>
-#include "checkupdate.h"
 
 Form::Form(globeset *globek, QWidget *parent) :
     QWidget(parent),
@@ -12,7 +11,7 @@ Form::Form(globeset *globek, QWidget *parent) :
     ui->next->hide();
 
     //检测更新
-    version="0.71";
+    version="0.7181";
     manager = new QNetworkAccessManager(this);
     QObject::connect(manager, SIGNAL(finished(QNetworkReply*)),this, SLOT(finishedSlot(QNetworkReply*)));
 }

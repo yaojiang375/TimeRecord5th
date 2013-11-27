@@ -27,8 +27,8 @@ class RecordItem
 public:
     RecordItem();
     int        Serial_Number;//Record序号
-    QString    Data;
-    int        intData;
+    QString    Date;
+    int        intDate;
     QString    Time;
     int        intTime;
     int        Minute;
@@ -36,7 +36,7 @@ public:
     QString    ThingRem;
     QString ReturnDiv(void)
     {
-        return  Data+Time;//汉字不靠谱。。。同样的数据能读出来不一样的结果。。。改用时间加日期作为主码
+        return  Date+Time;//汉字不靠谱。。。同样的数据能读出来不一样的结果。。。改用时间加日期作为主码
     }
 };
 class DayItem

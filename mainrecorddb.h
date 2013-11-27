@@ -31,11 +31,10 @@ private slots:
 
     void on_pushButton_clicked();
 
-
-
     void on_ConvertToExcel_clicked();
 
 private:
+    void RecordShow();
     Ui::MainRecordDB *ui;
     globeset *globe;
     void Sort_Map(QDomElement root,QMap<QString,QString> &Map_ItemToSortString,QMap<int,QString>  &Map_intToSortString,QString Dir="");

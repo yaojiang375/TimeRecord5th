@@ -22,8 +22,7 @@ SOURCES += main.cpp\
     GTDxml.cpp \
     recordgetandpost.cpp \
     mainrecorddb.cpp \
-    sorttherecordnamelikedir.cpp \
-    checkupdate.cpp
+    sorttherecordnamelikedir.cpp
 
 HEADERS  += \
     readrecord.h \
@@ -34,8 +33,7 @@ HEADERS  += \
     GTDxml.h \
     recordgetandpost.h \
     mainrecorddb.h \
-    sorttherecordnamelikedir.h \
-    checkupdate.h
+    sorttherecordnamelikedir.h
 
 FORMS    += \
     readrecord.ui \

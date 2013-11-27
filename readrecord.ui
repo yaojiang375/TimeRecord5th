@@ -13,22 +13,6 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <widget class="QPushButton" name="ShowButton">
-   <property name="geometry">
-    <rect>
-     <x>90</x>
-     <y>0</y>
-     <width>81</width>
-     <height>51</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true"/>
-   </property>
-   <property name="text">
-    <string>显示报表</string>
-   </property>
-  </widget>
   <widget class="QTableWidget" name="tableWidget">
    <property name="geometry">
     <rect>
@@ -42,7 +26,7 @@
   <widget class="QPushButton" name="AddToRecordDB">
    <property name="geometry">
     <rect>
-     <x>460</x>
+     <x>100</x>
      <y>0</y>
      <width>101</width>
      <height>51</height>
@@ -55,7 +39,7 @@
   <widget class="QPushButton" name="ShowRecordDB">
    <property name="geometry">
     <rect>
-     <x>270</x>
+     <x>430</x>
      <y>0</y>
      <width>81</width>
      <height>51</height>

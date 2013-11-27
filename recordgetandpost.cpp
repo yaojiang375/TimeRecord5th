@@ -31,8 +31,8 @@ void RecordGetAndPost::RecordReadFromFile(globeset globe)
         {
             XmlRecord                   =   new    RecordItem;
             Node                        =   Record.firstChildElement("Date");//Record为什么要有日期？冗余啊这是
-            XmlRecord->Data             =   Node.text();
-            XmlRecord->intData          =   Node.attribute("intDate").toInt();//这里Data写错了，待会儿改过来
+            XmlRecord->Date             =   Node.text();
+            XmlRecord->intDate          =   Node.attribute("intDate").toInt();//这里Date写错了，待会儿改过来
             Node                        =   Record.firstChildElement("Time");
             XmlRecord->Time             =   Node.text();
             XmlRecord->intTime          =   Node.attribute("intTime").toInt();
@@ -59,7 +59,40 @@ void RecordGetAndPost::RecordReadFromFile(globeset globe)
 
 void RecordGetAndPost::RecordAdd(globeset globe)
 {
-
+    /*****************************************
+     *函数逻辑
+     *RecordAdd函数逻辑
+     *  • 首先，读取所有『日期+时间+事项名』记录至Set，利用Set检测重复。
+     *  • 其次，读取一条新纪录
+     *      • 检测Set中是否已存在『日期+时间+事项名』
+     *          • 存在
+     *               • 跳过
+     *           • 不存在
+     *              • 抽取日期，检测记录中是否存在对应日期
+     *                  • 存在日期K【接续先前记录】
+     *                      • 逆序遍历日期K中的所有Record值（假定已按降序排
+     *                        列），以第一个intTime小于ThisRecord。intTime的值
+     *                        作为LastRecord，ThisRecord插入到LastRecord之后
+     *                  • 若无，ThisRecord插入到首位
+     *                      • 更新LastRecord的minute值//默认为-1
+     *                      • 检测记录中的LastThing是否为空
+     *                          • 为空
+     *                              •LastRecord.Thing不需要更新
+     *                          • 不为空
+     *                              • 更新LastRecord.Thing及
+     *                                LastRecord.ThingRem
+     *            • 不存在【该记录为在新日期上的记录】
+     *              • 新建日期记录，更新其intData值（假定为K）
+     *                  • 将ThisRecord加入到新纪录中
+     *                      • 查找记录【K-1】是否存在
+     *                          • 存在
+     *                              • 对Day[K-1]的所有Record记录进行排序
+     *                              • 取Last（）作为LastRecord
+     *                              • 更新LastRecord
+     *                           • 不存在
+     *                               • 全新记录
+     *                                   • 不必检测LastThing
+     ****************************************/
     QFile   XmlReader("./ini/RecXml.xml");//读取初步转换后的短信记录
     XmlReader.open(QIODevice::ReadOnly);
     QDomDocument    XML_Doc;
@@ -92,7 +125,7 @@ void RecordGetAndPost::RecordAdd(globeset globe)
         }
 
         Node                         =      Record.firstChildElement("Date");
-        ThisRecord->Data             =      Node.text();
+        ThisRecord->Date             =      Node.text();
         Node                         =      Record.firstChildElement("Time");
         ThisRecord->Time             =      Node.text();
         Node                         =      Record.firstChildElement("Body");
@@ -104,10 +137,10 @@ void RecordGetAndPost::RecordAdd(globeset globe)
             continue;
         }
         ThisRecord->ThingRem         =      Node.firstChildElement("NextThingRemember").text();
-        ThisRecord->intData          =      globe.STLDate.daysTo(QDate::fromString(ThisRecord->Data,"yyyy-MM-dd"));
+        ThisRecord->intDate          =      globe.STLDate.daysTo(QDate::fromString(ThisRecord->Date,"yyyy-MM-dd"));
         ThisRecord->intTime          =      globe.STLTime.secsTo(QTime::fromString(ThisRecord->Time,"hh:mm"))/60;
         LastDay                      =      NewDay;
-        NewDay                       =      XmlRoot.findDayItem(0,XmlRoot.DaySerial.count()-1,ThisRecord->intData);
+        NewDay                       =      XmlRoot.findDayItem(0,XmlRoot.DaySerial.count()-1,ThisRecord->intDate);
         if(LastDay!=NewDay&&LastDay!=NULL)//更新日期时对前一日期进行排序
         {
             qSort(LastDay->Children.begin(),LastDay->Children.end(),RecordLessThan);
@@ -140,7 +173,7 @@ void RecordGetAndPost::RecordAdd(globeset globe)
         else
         {
             NewDay                   =       new DayItem;
-            NewDay->DayNumber        =       ThisRecord->intData;
+            NewDay->DayNumber        =       ThisRecord->intDate;
             NewDay->Children.append(ThisRecord);
             XmlRoot.DaySerial.append(NewDay);            
             LastDay                  =       XmlRoot.findDayItem(0,XmlRoot.DaySerial.count()-1,NewDay->DayNumber-1);
@@ -192,14 +225,14 @@ void RecordGetAndPost::RecordSave(globeset globe)
     {
         Day_Item    =       XmlRoot.DaySerial[DayCount];
         Day         =       XML_Doc.createElement("Day");
-        Day.setAttribute("DayNumber",Day_Item->Children.first()->intData);
+        Day.setAttribute("DayNumber",Day_Item->Children.first()->intDate);
         for(RecordCount=0;RecordCount<Day_Item->Children.count();RecordCount++)
         {
             Record_Item =   Day_Item->Children[RecordCount];
             Record      =   XML_Doc.createElement("Record");
             Node        =   XML_Doc.createElement("Date");
-            Node.setAttribute("intDate",Record_Item->intData);
-            Text        =   XML_Doc.createTextNode(Record_Item->Data);
+            Node.setAttribute("intDate",Record_Item->intDate);
+            Text        =   XML_Doc.createTextNode(Record_Item->Date);
             Node.appendChild(Text);
             Record.appendChild(Node);
 
@@ -286,8 +319,8 @@ DayItem *XMLRoot::findDayItem(int begin, int end, int intDate)
 
 RecordItem::RecordItem()//初始化
 {
-    this->Data="";
-    this->intData=0;
+    this->Date="";
+    this->intDate=0;
     this->intTime=0;
     this->Minute=-1;
     this->Serial_Number=0;

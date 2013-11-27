@@ -20,16 +20,13 @@ signals:
 
 
 private slots:
-
-    void on_ShowButton_clicked();
     void on_AddToRecordDB_clicked();
 
     void on_ShowRecordDB_clicked();
 
-
-
 private:
     void insertTable();
+    void RecordShow();
     Ui::ReadRecord *ui;
     globeset *globe;
 };

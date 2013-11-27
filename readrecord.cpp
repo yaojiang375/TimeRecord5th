@@ -17,7 +17,7 @@ ReadRecord::ReadRecord(globeset *globek,QWidget *parent) :
     ui(new Ui::ReadRecord)
 {
     ui->setupUi(this);
-    ui->ShowRecordDB->hide();
+
     //ui->AddToRecordDB->hide();
     globe=globek;
     QTableWidget    *table=ui->tableWidget;
@@ -67,9 +67,7 @@ ReadRecord::ReadRecord(globeset *globek,QWidget *parent) :
          i++;
         Record=Record.nextSibling();
      }
-
-
-
+     RecordShow();
 }
 
 ReadRecord::~ReadRecord()
@@ -78,7 +76,7 @@ ReadRecord::~ReadRecord()
 }
 
 
-void ReadRecord::on_ShowButton_clicked()
+void ReadRecord::RecordShow()
 {
     SmsReader   outside_smsreader(*globe);
     outside_smsreader.Read(*globe);//处理短信记录
@@ -138,7 +136,7 @@ void ReadRecord::on_AddToRecordDB_clicked()
     a.RecordReadFromFile(*globe);
     a.RecordAdd(*globe);
     a.RecordSave(*globe);
-    ui->ShowRecordDB->show();
+    //ui->ShowRecordDB->show();
 }
 
 void ReadRecord::on_ShowRecordDB_clicked()
