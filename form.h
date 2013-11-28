@@ -15,6 +15,12 @@
 #include <QMessageBox>
 
 #define  READLENGTH 9999
+/*******************************************
+ *私有变量version为版本号
+ *修改后会把新纪录直接写入源文件中，而且没有撤销功能，感觉比较不妥
+ *
+ ******************************************/
+
 namespace Ui {
 class Form;
 }
@@ -38,6 +44,8 @@ private slots:
     void on_pushButton_2_clicked();
 
     void finishedSlot(QNetworkReply* Reply);//检测更新
+    void on_Check_clicked();
+
 private:
 
     Ui::Form *ui;

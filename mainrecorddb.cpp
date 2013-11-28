@@ -8,7 +8,9 @@ MainRecordDB::MainRecordDB(globeset *globek,QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MainRecordDB)
 {
+
     ui->setupUi(this);
+    this->setWindowTitle(trUtf8("时间管理器5th"));
     globe = globek;
     ui->treeWidget->setColumnWidth(0,100);//日期
     ui->treeWidget->setColumnWidth(1,50);//时间
@@ -186,28 +188,39 @@ void MainRecordDB::on_ConvertToExcel_clicked()
     int                     Minute=0;//生成标准时间
     QString                 Hour_Minute;
     QString                 Set_Num;
-
+    /***********************使用DateTime格式的关键*********************************/
+    Styles          =Save.createElement("Styles");
+    Style           =Save.createElement("Style");
+    Style.setAttribute("ss:ID","s62");
+    NumberFormat    =Save.createElement("NumberFormat");
+    NumberFormat.setAttribute("ss:Format","h:mm;@");
+    Style.appendChild(NumberFormat);
+    Styles.appendChild(Style);
+    WorkBook.appendChild(Styles);
+    /****************************************************************************/
     WorkSheet       =Save.createElement("Worksheet");
     WorkSheet.setAttribute("ss:Name",trUtf8("时间统计表"));
     Table           =Save.createElement("Table");
-{
+
+        Column          =Save.createElement("Column");
+        Column.setAttribute("ss:Index","2");
+        Column.setAttribute("ss:StyleID","s62");
+        Table.appendChild(Column);
+        Column          =Save.createElement("Column");
+        Column.setAttribute("ss:Index","4");
+        Column.setAttribute("ss:StyleID","s62");
+        Table.appendChild(Column);
+
+   /* Column          =Save.createElement("Column");
+    Column.setAttribute("ss:AutoFitWidth","0");
+    Table.appendChild(Column);
     Column          =Save.createElement("Column");
     Column.setAttribute("ss:AutoFitWidth","0");
     Table.appendChild(Column);
     Column          =Save.createElement("Column");
-    Column.setAttribute( "ss:AutoFitWidth","0");
-    Table.appendChild(Column);
-    Column          =Save.createElement("Column");
     Column.setAttribute("ss:AutoFitWidth","0");
-    Table.appendChild(Column);
-    Column          =Save.createElement("Column");
-    Column.setAttribute("ss:AutoFitWidth","0");
-    Table.appendChild(Column);
-    Column          =Save.createElement("Column");
-    Column.setAttribute("ss:AutoFitWidth","0");
-    Table.appendChild(Column);
+    Table.appendChild(Column);*/
     Row             =Save.createElement("Row");
-{
         Cell=Save.createElement("Cell");
         Date=Save.createElement("Data");
         Date.setAttribute("ss:Type","String");
@@ -255,10 +268,10 @@ void MainRecordDB::on_ConvertToExcel_clicked()
         Date.appendChild(Dom_text);
         Cell.appendChild(Date);
         Row.appendChild(Cell);
-}
+
     Table.appendChild(Row);
     //标题列
-}
+
     for(int i=0;i<ui->treeWidget->topLevelItemCount();i++)
     {
 
@@ -282,10 +295,11 @@ void MainRecordDB::on_ConvertToExcel_clicked()
                 Date=Save.createElement("Data");
                 if(z==3)
                 {
-                    Date.setAttribute("ss:Type","String");
+                    Date.setAttribute("ss:Type","DateTime");
                     Minute=atoi(Item->text(z).toStdString().c_str());
                     Hour=Minute/60;
                     Minute=Minute%60;
+                    Hour_Minute+="1899-12-31T";
                     if(Hour>9)
                     {
                         Hour_Minute+=Set_Num.setNum(Hour)+":";
@@ -297,7 +311,7 @@ void MainRecordDB::on_ConvertToExcel_clicked()
                     }
                     if(Minute>9)
                     {
-                        Hour_Minute+=Set_Num.setNum(Minute);
+                        Hour_Minute+=Set_Num.setNum(Minute)+":00.000";
                     }
                     else
                     {
@@ -307,7 +321,7 @@ void MainRecordDB::on_ConvertToExcel_clicked()
                         }
 
                         Hour_Minute+="0";
-                        Hour_Minute+=Set_Num.setNum(Minute);
+                        Hour_Minute+=Set_Num.setNum(Minute)+":00.000";
 
                     }
                     qDebug()<<Hour_Minute;
@@ -316,8 +330,17 @@ void MainRecordDB::on_ConvertToExcel_clicked()
                 }
                 else
                 {
-                   Date.setAttribute("ss:Type","String");
-                   Dom_text=Save.createTextNode(Item->text(z));
+                    if(z==1)
+                    {
+                        Date.setAttribute("ss:Type","DateTime");
+                        Dom_text=Save.createTextNode("1991-03-20T"+Item->text(z)+":00.000");
+                        qDebug()<<"1991-03-20T"+Item->text(z)+":00.000";
+                    }
+                    else
+                    {
+                        Date.setAttribute("ss:Type","String");
+                        Dom_text=Save.createTextNode(Item->text(z));
+                    }
                 }
 
 

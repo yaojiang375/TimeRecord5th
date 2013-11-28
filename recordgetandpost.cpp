@@ -130,7 +130,7 @@ void RecordGetAndPost::RecordAdd(globeset globe)
         ThisRecord->Time             =      Node.text();
         Node                         =      Record.firstChildElement("Body");
         ThisRecord->Thing            =      Node.firstChildElement("NextThing").text().trimmed();
-        qDebug()<<"ThisRecord div = "<<ThisRecord->ReturnDiv();
+        //qDebug()<<"ThisRecord div = "<<ThisRecord->ReturnDiv();
         if(CheckDuplicate.contains(ThisRecord->ReturnDiv()))
         {
             Record                       =      Record.nextSiblingElement("Record");
@@ -175,7 +175,8 @@ void RecordGetAndPost::RecordAdd(globeset globe)
             NewDay                   =       new DayItem;
             NewDay->DayNumber        =       ThisRecord->intDate;
             NewDay->Children.append(ThisRecord);
-            XmlRoot.DaySerial.append(NewDay);            
+            XmlRoot.DaySerial.append(NewDay);
+            qSort(XmlRoot.DaySerial.begin(),XmlRoot.DaySerial.end(),DayLessThan);//添加完新日期之后进行排序，可以进一步改进，改成插入模式,至少能再快两个数量级
             LastDay                  =       XmlRoot.findDayItem(0,XmlRoot.DaySerial.count()-1,NewDay->DayNumber-1);
             if(LastDay!=NULL)
             {

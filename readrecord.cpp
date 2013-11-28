@@ -17,7 +17,7 @@ ReadRecord::ReadRecord(globeset *globek,QWidget *parent) :
     ui(new Ui::ReadRecord)
 {
     ui->setupUi(this);
-
+    this->setWindowTitle(trUtf8("时间管理器5th"));
     //ui->AddToRecordDB->hide();
     globe=globek;
     QTableWidget    *table=ui->tableWidget;
@@ -148,3 +148,13 @@ void ReadRecord::on_ShowRecordDB_clicked()
 }
 
 
+
+void ReadRecord::on_pushButton_2_clicked()
+{
+    system("explorer http://hi.baidu.com/yaojiang375");
+}
+
+void ReadRecord::on_pushButton_clicked()
+{
+    system("explorer https://github.com/yaojiang375/TimeRecord5th");
+}

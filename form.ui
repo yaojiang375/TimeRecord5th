@@ -26,9 +26,9 @@
   <widget class="QPushButton" name="pushButton">
    <property name="geometry">
     <rect>
-     <x>170</x>
+     <x>360</x>
      <y>10</y>
-     <width>81</width>
+     <width>91</width>
      <height>41</height>
     </rect>
    </property>
@@ -112,6 +112,19 @@
    </property>
    <property name="text">
     <string>Yesterday you said tomorrow</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="Check">
+   <property name="geometry">
+    <rect>
+     <x>170</x>
+     <y>10</y>
+     <width>91</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>验证</string>
    </property>
   </widget>
  </widget>
