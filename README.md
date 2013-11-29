@@ -97,7 +97,8 @@
 	
 
 
-
+软件下载地址：[http://pan.baidu.com/s/1CaCDN](http://pan.baidu.com/s/1CaCDN)  
+作者主页　　：[http://hi.baidu.com/yaojiang375](http://hi.baidu.com/yaojiang375)
 
 [1]:  http://book.douban.com/subject/3609132/
 [2]: http://shouji.sogou.com/?r=pinyin
