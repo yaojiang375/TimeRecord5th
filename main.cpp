@@ -2,7 +2,6 @@
 #include <QApplication>
 #include <globe.h>
 #include <form.h>
-
 /*****************
  *测试
  *

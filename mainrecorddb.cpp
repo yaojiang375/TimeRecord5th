@@ -8,7 +8,8 @@ MainRecordDB::MainRecordDB(globeset *globek,QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MainRecordDB)
 {
-
+    QIcon       icon("./ini/www.ico");
+    QWidget::setWindowIcon(icon);
     ui->setupUi(this);
     this->setWindowTitle(trUtf8("时间管理器5th"));
     globe = globek;

@@ -16,6 +16,8 @@ ReadRecord::ReadRecord(globeset *globek,QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ReadRecord)
 {
+    QIcon       icon("./ini/www.ico");
+    QWidget::setWindowIcon(icon);
     ui->setupUi(this);
     this->setWindowTitle(trUtf8("时间管理器5th"));
     //ui->AddToRecordDB->hide();

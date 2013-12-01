@@ -1,4 +1,5 @@
 #include "recordgetandpost.h"
+#include <QObject>
 
 #define   RECORDSERIALNUMBER  (RecordSerialNumber:LastRecord?NextRecord)  //转换
 #define   _RECORDSERIALNUMBER (RecordSerialNumber:NextRecord?LastRecord) //逆转换
@@ -64,34 +65,34 @@ void RecordGetAndPost::RecordAdd(globeset globe)
      *RecordAdd函数逻辑
      *  • 首先，读取所有『日期+时间+事项名』记录至Set，利用Set检测重复。
      *  • 其次，读取一条新纪录
-     *      • 检测Set中是否已存在『日期+时间+事项名』
+     *      • 检测Set中是否已存在『日期+时间』
      *          • 存在
      *               • 跳过
-     *           • 不存在
-     *              • 抽取日期，检测记录中是否存在对应日期
+     *           • 不存在//新记录
+     *             • 抽取日期，检测记录中是否存在对应日期
      *                  • 存在日期K【接续先前记录】
      *                      • 逆序遍历日期K中的所有Record值（假定已按降序排
      *                        列），以第一个intTime小于ThisRecord。intTime的值
-     *                        作为LastRecord，ThisRecord插入到LastRecord之后
-     *                  • 若无，ThisRecord插入到首位
-     *                      • 更新LastRecord的minute值//默认为-1
-     *                      • 检测记录中的LastThing是否为空
-     *                          • 为空
-     *                              •LastRecord.Thing不需要更新
-     *                          • 不为空
-     *                              • 更新LastRecord.Thing及
-     *                                LastRecord.ThingRem
-     *            • 不存在【该记录为在新日期上的记录】
-     *              • 新建日期记录，更新其intData值（假定为K）
-     *                  • 将ThisRecord加入到新纪录中
-     *                      • 查找记录【K-1】是否存在
-     *                          • 存在
-     *                              • 对Day[K-1]的所有Record记录进行排序
-     *                              • 取Last（）作为LastRecord
-     *                              • 更新LastRecord
-     *                           • 不存在
-     *                               • 全新记录
-     *                                   • 不必检测LastThing
+     *                        作为LastRecord，ThisRecord插入到LastRecord之后//此时日期内有序
+     *                      • 若无，ThisRecord插入到首位（LastRecord在【K=1天】的记录内，查找，找到更新LastRecord与自身，找不到只更新自身）//需补充完整
+     *                          • 更新LastRecord的minute值//默认为-1
+     *                          • 检测记录中的LastThing是否为空
+     *                              • 为空
+     *                                  •LastRecord.Thing不需要更新
+     *                              • 不为空
+     *                                  • 更新LastRecord.Thing及
+     *                                    LastRecord.ThingRem
+     *                  • 不存在【该记录为在新日期上的记录】
+     *                      • 新建日期记录，更新其intData值（假定为K）
+     *                      • 将ThisRecord加入到新纪录中
+     *                          • 查找记录【K-1】是否存在
+     *                              • 存在
+     *                                  • 对Day[K-1]的所有Record记录进行排序
+     *                                  • 取Last（）作为LastRecord
+     *                                  • 更新LastRecord//将前条记录的NextThing及其备注作为LastRecord的备注存留
+     *                              • 不存在
+     *                                  • 全新记录
+     *                                      • 不必检测LastThing
      ****************************************/
     QFile   XmlReader("./ini/RecXml.xml");//读取初步转换后的短信记录
     XmlReader.open(QIODevice::ReadOnly);
@@ -130,7 +131,7 @@ void RecordGetAndPost::RecordAdd(globeset globe)
         ThisRecord->Time             =      Node.text();
         Node                         =      Record.firstChildElement("Body");
         ThisRecord->Thing            =      Node.firstChildElement("NextThing").text().trimmed();
-        //qDebug()<<"ThisRecord div = "<<ThisRecord->ReturnDiv();
+        qDebug()<<"ThisRecord div = "<<ThisRecord->ReturnDiv();
         if(CheckDuplicate.contains(ThisRecord->ReturnDiv()))
         {
             Record                       =      Record.nextSiblingElement("Record");
@@ -149,9 +150,9 @@ void RecordGetAndPost::RecordAdd(globeset globe)
         {
             Node                     =      Node.firstChildElement("LastThing");
                 int     i=NewDay->Children.count()-1;
-                for(;NewDay->Children[i]->intTime>ThisRecord->intTime&&i>=0;i--)//原初：第一个大于iniTime的值的前一个位置//修改：第一个小于iniTime的位置//影响速度，可以直接用last进行处理
+                for(;i>=0&&NewDay->Children[i]->intTime>ThisRecord->intTime;i--)//原初：第一个大于iniTime的值的前一个位置//修改：第一个小于iniTime的位置//影响速度，可以直接用last进行处理//i>=0必须要放到最前面，要不直接数组越界
                 {
-                    qDebug()<<NewDay->Children.count();//Only test;
+
                 }
                 if(i>=0)
                 {
@@ -159,14 +160,63 @@ void RecordGetAndPost::RecordAdd(globeset globe)
                 LastRecord->Minute    =ThisRecord->intTime-LastRecord->intTime;
                 if(Node.text().size()!=0)
                 {
-                    LastRecord->Thing      =Node.text();
-                    LastRecord->ThingRem   =Node.nextSiblingElement("LastThingRemember").text();
+                    if(LastRecord->ThingRem.length())
+                    {
+                        LastRecord->ThingRem   =Node.nextSiblingElement("LastThingRemember").text()+QObject::trUtf8("被覆盖的记录 ： ")+LastRecord->Thing+QObject::trUtf8("记录备注 ： ")+LastRecord->ThingRem;
+                    }
+                    else
+                    {
+                        if(LastRecord->Thing.length())
+                        {
+                            LastRecord->ThingRem   =Node.nextSiblingElement("LastThingRemember").text()+QObject::trUtf8("被覆盖的记录 ： ")+LastRecord->Thing;
+                        }
+                        else
+                        {
+                            LastRecord->ThingRem   =Node.nextSiblingElement("LastThingRemember").text();
+                        }
+
+                    }
+                        LastRecord->Thing      =Node.text();
                 }
                 NewDay->Children.insert(i+1,ThisRecord);
                 }
                 else
                 {
                     NewDay->Children.insert(0,ThisRecord);//出现这种情况一般都是故障了
+                    ThisRecord->Minute=NewDay->Children[1]->intTime-ThisRecord->intTime;
+                    LastDay                  =       XmlRoot.findDayItem(0,XmlRoot.DaySerial.count()-1,NewDay->DayNumber-1);
+                    if(LastDay==NULL)
+                    {
+                        Record                       =      Record.nextSiblingElement("Record");
+                        continue;
+                    }
+                    else
+                    {
+                        LastRecord=LastDay->Children.last();
+                        LastRecord->Minute           =      ThisRecord->intTime+24*60-LastRecord->intTime;
+                        Node                     =       Node.firstChildElement("LastThing");
+                        if(Node.text().size()!=0)
+                        {
+                            if(LastRecord->ThingRem.length())
+                            {
+                                LastRecord->ThingRem   =Node.nextSiblingElement("LastThingRemember").text()+QObject::trUtf8("被覆盖的记录 ： ")+LastRecord->Thing+QObject::trUtf8("记录备注 ： ")+LastRecord->ThingRem;
+                            }
+                            else
+                            {
+                                if(LastRecord->Thing.length())
+                                {
+                                    LastRecord->ThingRem   =Node.nextSiblingElement("LastThingRemember").text()+QObject::trUtf8("被覆盖的记录 ： ")+LastRecord->Thing;
+                                }
+                                else
+                                {
+                                    LastRecord->ThingRem   =Node.nextSiblingElement("LastThingRemember").text();
+                                }
+
+                            }
+                                LastRecord->Thing      =Node.text();
+                        }
+                    }
+
                 }
 
         }
@@ -186,8 +236,23 @@ void RecordGetAndPost::RecordAdd(globeset globe)
                 Node                     =       Node.firstChildElement("LastThing");
                 if(Node.text().size()!=0)
                 {
-                    LastRecord->Thing      =Node.text();
-                    LastRecord->ThingRem   =Node.nextSiblingElement("LastThingRemember").text();
+                    if(LastRecord->ThingRem.length())
+                    {
+                        LastRecord->ThingRem   =Node.nextSiblingElement("LastThingRemember").text()+QObject::trUtf8("被覆盖的记录 ： ")+LastRecord->Thing+QObject::trUtf8("记录备注 ： ")+LastRecord->ThingRem;
+                    }
+                    else
+                    {
+                        if(LastRecord->Thing.length())
+                        {
+                            LastRecord->ThingRem   =Node.nextSiblingElement("LastThingRemember").text()+QObject::trUtf8("被覆盖的记录 ： ")+LastRecord->Thing;
+                        }
+                        else
+                        {
+                            LastRecord->ThingRem   =Node.nextSiblingElement("LastThingRemember").text();
+                        }
+
+                    }
+                        LastRecord->Thing      =Node.text();
                 }
             }
             else

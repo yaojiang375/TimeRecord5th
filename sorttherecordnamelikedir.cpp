@@ -7,7 +7,8 @@ SortTheRecordNameLikeDir::SortTheRecordNameLikeDir(QVector<QString> &t, QWidget 
 
     ui(new Ui::SortTheRecordNameLikeDir)
 {
-
+    QIcon       icon("./ini/www.ico");
+    QWidget::setWindowIcon(icon);
     ui->setupUi(this);
     this->setWindowTitle(trUtf8("时间管理器5th"));
     //ui->treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);//设置右键菜单

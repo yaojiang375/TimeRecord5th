@@ -6,12 +6,14 @@ Form::Form(globeset *globek, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Form)
 {
+    QIcon       icon("./ini/www.ico");
+    QWidget::setWindowIcon(icon);
     ui->setupUi(this);
     globe=globek;
     ui->next->hide();
     this->setWindowTitle(trUtf8("时间管理器5th"));
     //检测更新
-    version="0.7181";
+    version="0.71819";
     manager = new QNetworkAccessManager(this);
     QObject::connect(manager, SIGNAL(finished(QNetworkReply*)),this, SLOT(finishedSlot(QNetworkReply*)));
 }

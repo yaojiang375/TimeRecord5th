@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="toolTip">
+   <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+  </property>
   <widget class="QTableWidget" name="tableWidget">
    <property name="geometry">
     <rect>
@@ -98,7 +101,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>0.7181</string>
+    <string>0.71819</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_3">
