@@ -144,6 +144,50 @@ void MainRecordDB::FlushMap()
     return;
 }
 
+QString MainRecordDB::ReturnHour_Minute(int minute)
+{
+    QString Egg ;
+    int     Minute;
+    int     Hour;
+    QString Hour_Minute;
+    QString Set_Num;
+    Egg="1899-12-31T";
+    Minute=   minute;
+    Hour=Minute/60;
+    if(Hour>=24)//假定一天时间小于48//不！完！！美！！！应该用while反复处理，建立一个专门处理时间的类！
+    {
+        Hour=Hour%24;
+        Egg="1900-01-01T";
+    }
+
+    Minute=Minute%60;
+    Hour_Minute+=Egg;
+    if(Hour>9)
+    {
+        Hour_Minute+=Set_Num.setNum(Hour)+":";
+    }
+    else
+    {
+        Hour_Minute+="0";
+        Hour_Minute+=Set_Num.setNum(Hour)+":";
+    }
+    if(Minute>9)
+    {
+        Hour_Minute+=Set_Num.setNum(Minute)+":00.000";
+    }
+    else
+    {
+        if(Minute==-1)
+        {
+           Minute=0;
+        }
+
+        Hour_Minute+="0";
+        Hour_Minute+=Set_Num.setNum(Minute)+":00.000";
+    }
+    return Hour_Minute;
+}
+
 
 
 
@@ -184,16 +228,20 @@ void MainRecordDB::on_ConvertToExcel_clicked()
         WorkBook.setAttribute("xmlns","urn:schemas-microsoft-com:office:spreadsheet");
         WorkBook.setAttribute("xmlns:o","urn:schemas-microsoft-com:office:office");
         WorkBook.setAttribute("xmlns:x","urn:schemas-microsoft-com:office:excel");
-    int                     Hour=0;//用于生产标准时间
     int                     Minute=0;//生成标准时间
     QString                 Hour_Minute;
-    QString                 Set_Num;
     /***********************使用DateTime格式的关键*********************************/
     Styles          =Save.createElement("Styles");
     Style           =Save.createElement("Style");
     Style.setAttribute("ss:ID","s62");
     NumberFormat    =Save.createElement("NumberFormat");
     NumberFormat.setAttribute("ss:Format","h:mm;@");
+    Style.appendChild(NumberFormat);
+    Styles.appendChild(Style);
+    Style           =Save.createElement("Style");
+    Style.setAttribute("ss:ID","s64");
+    NumberFormat    =Save.createElement("NumberFormat");
+    NumberFormat.setAttribute("ss:Format","[h]:mm");
     Style.appendChild(NumberFormat);
     Styles.appendChild(Style);
     WorkBook.appendChild(Styles);
@@ -209,6 +257,10 @@ void MainRecordDB::on_ConvertToExcel_clicked()
         Column          =Save.createElement("Column");
         Column.setAttribute("ss:Index","4");
         Column.setAttribute("ss:StyleID","s62");
+        Table.appendChild(Column);
+        Column          =Save.createElement("Column");
+        Column.setAttribute("ss:Index","9");
+        Column.setAttribute("ss:StyleID","s64");
         Table.appendChild(Column);
 
    /* Column          =Save.createElement("Column");
@@ -272,7 +324,7 @@ void MainRecordDB::on_ConvertToExcel_clicked()
     Table.appendChild(Row);
     //标题列
 
-    for(int i=0;i<ui->treeWidget->topLevelItemCount();i++)
+    for(int i=0;i<ui->treeWidget->topLevelItemCount();i++)//每天的记录
     {
 
         Row =Save.createElement("Row");
@@ -285,11 +337,38 @@ void MainRecordDB::on_ConvertToExcel_clicked()
         Cell.appendChild(Date);
         Row.appendChild(Cell);
         Table.appendChild(Row);
-        for(int k=0;k<ui->treeWidget->topLevelItem(i)->childCount();k++)
+
+        /****************我是分类时间统计的分割线********************/
+        int RowCount    =   Item->childCount();//该日总记录数
+        QMap<QString,int>   ReturnTimeCountBySortID;
+        for(int z=0;z<RowCount;z++)
+        {
+            int     BufMinute   =   atoi(Item->child(z)->text(3).toStdString().c_str());
+            if(BufMinute<0)
+            {
+                BufMinute=0;
+            }
+            if(ReturnTimeCountBySortID.contains(Item->child(z)->text(5)))//事项名
+            {
+                ReturnTimeCountBySortID[Item->child(z)->text(5)]+=BufMinute;
+            }
+            else
+            {
+                ReturnTimeCountBySortID[Item->child(z)->text(5)]=BufMinute;//添加纪录
+            }
+            qDebug()<<"text(3) = "<<Item->child(z)->text(3);
+            qDebug()<<"text(5) = "<<Item->child(z)->text(5);
+        }
+        QMap<QString,int>::iterator  ReturnTimeCountBySortIDIterator = ReturnTimeCountBySortID.begin();
+        /****************我是分类时间统计的分割线********************/
+
+
+        for(int k=0;k<ui->treeWidget->topLevelItem(i)->childCount();k++)//每行的记录
         {
             Row =Save.createElement("Row");
             Item=ui->treeWidget->topLevelItem(i)->child(k);
-            for(int z=0;z<Item->columnCount();z++)
+
+            for(int z=0;z<Item->columnCount();z++)//行内的每个单元
             {
                 Cell=Save.createElement("Cell");
                 Date=Save.createElement("Data");
@@ -297,33 +376,7 @@ void MainRecordDB::on_ConvertToExcel_clicked()
                 {
                     Date.setAttribute("ss:Type","DateTime");
                     Minute=atoi(Item->text(z).toStdString().c_str());
-                    Hour=Minute/60;
-                    Minute=Minute%60;
-                    Hour_Minute+="1899-12-31T";
-                    if(Hour>9)
-                    {
-                        Hour_Minute+=Set_Num.setNum(Hour)+":";
-                    }
-                    else
-                    {
-                        Hour_Minute+="0";
-                        Hour_Minute+=Set_Num.setNum(Hour)+":";
-                    }
-                    if(Minute>9)
-                    {
-                        Hour_Minute+=Set_Num.setNum(Minute)+":00.000";
-                    }
-                    else
-                    {
-                        if(Minute==-1)
-                        {
-                           Minute=0;
-                        }
-
-                        Hour_Minute+="0";
-                        Hour_Minute+=Set_Num.setNum(Minute)+":00.000";
-
-                    }
+                    Hour_Minute=ReturnHour_Minute(Minute);
                     qDebug()<<Hour_Minute;
                     Dom_text=Save.createTextNode(Hour_Minute);
                     Hour_Minute.clear();
@@ -342,12 +395,42 @@ void MainRecordDB::on_ConvertToExcel_clicked()
                         Dom_text=Save.createTextNode(Item->text(z));
                     }
                 }
-
-
                 Date.appendChild(Dom_text);
                 Cell.appendChild(Date);
-                Row.appendChild(Cell);
+                Row.appendChild(Cell);//输出时间
             }
+            /****************我是分类时间统计的分割线********************/
+            if(ReturnTimeCountBySortIDIterator!=ReturnTimeCountBySortID.end())
+            {
+                Cell=Save.createElement("Cell");
+                Date=Save.createElement("Data");
+                Date.setAttribute("ss:Type","String");
+                Cell.appendChild(Date);
+                Row.appendChild(Cell);//先添加一个空单元格
+
+
+                Cell=Save.createElement("Cell");
+                Date=Save.createElement("Data");
+                Date.setAttribute("ss:Type","String");
+                Dom_text=Save.createTextNode(ReturnTimeCountBySortIDIterator.key());
+                Date.appendChild(Dom_text);
+                Cell.appendChild(Date);
+                Row.appendChild(Cell);//输出分类名
+
+                Cell=Save.createElement("Cell");
+                Date=Save.createElement("Data");
+                Date.setAttribute("ss:Type","DateTime");
+                Hour_Minute =   ReturnHour_Minute(ReturnTimeCountBySortIDIterator.value());
+                qDebug()<<Hour_Minute;
+                Dom_text=Save.createTextNode(Hour_Minute);
+                Date.appendChild(Dom_text);
+                Cell.appendChild(Date);
+                Row.appendChild(Cell);//输出时间
+                Hour_Minute.clear();
+                ReturnTimeCountBySortIDIterator++;
+
+            }
+            /****************我是分类时间统计的分割线********************/
             Table.appendChild(Row);
         }
 

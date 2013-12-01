@@ -42,6 +42,7 @@ private:
     QMap<int,QString>     Map_intToSortString;
     QVector<QString>      Vector_NeedSort;
     void                  FlushMap();
+    QString               ReturnHour_Minute(int minute);
 };
 
 #endif // MAINRECORDDB_H

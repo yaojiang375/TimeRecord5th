@@ -9,7 +9,7 @@ QT       += xml
 QT       += network
 QT       += webkit
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
+RC_FILE += hello.rc
 TARGET = TimeRecord5th
 TEMPLATE = app
 
@@ -40,3 +40,5 @@ FORMS    += \
     form.ui \
     mainrecorddb.ui \
     sorttherecordnamelikedir.ui
+
+OTHER_FILES +=

@@ -152,7 +152,7 @@ void Form::on_next_clicked()
 {
     ReadRecord  *a = new ReadRecord(globe);
     a->show();
-    this->close();
+    this->hide();
 }
 
 void Form::on_pushButton_2_clicked()
