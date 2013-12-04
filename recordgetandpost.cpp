@@ -3,14 +3,14 @@
 
 #define   RECORDSERIALNUMBER  (RecordSerialNumber:LastRecord?NextRecord)  //转换
 #define   _RECORDSERIALNUMBER (RecordSerialNumber:NextRecord?LastRecord) //逆转换
-RecordGetAndPost::RecordGetAndPost()
+RecordGetAndPost::RecordGetAndPost(globeset *readglobe)
 {
-
+        globe   =   readglobe;
 }
 
-void RecordGetAndPost::RecordReadFromFile(globeset globe)
+void RecordGetAndPost::readXmlRecord()
 {
-    QFile   XmlReader(globe.RecordGetAndPost);//读取原纪录
+    QFile   XmlReader(globe->RecordGetAndPostPos);//读取原纪录
     XmlReader.open(QIODevice::ReadOnly);
     QDomDocument    XML_Doc;
     XML_Doc.setContent(&XmlReader);
@@ -44,11 +44,12 @@ void RecordGetAndPost::RecordReadFromFile(globeset globe)
             Node                        =   Record.firstChildElement("ThingRem");
             XmlRecord->ThingRem         =   Node.text();
             Record                      =   Record.nextSiblingElement("Record");
+            XmlRecord->Div              =   XmlRecord->intDate*10000+XmlRecord->intTime;
             XmlDay->Children.append(XmlRecord);
-            qDebug()<<"CheckDuplicate = "<<XmlRecord->ReturnDiv();
-            CheckDuplicate.insert(XmlRecord->ReturnDiv());//测重标记
+            qDebug()<<"CheckDuplicate = "<<XmlRecord->Div;
+            CheckDuplicate.insert(XmlRecord->Div);//测重标记
         }
-        qSort(XmlDay->Children.begin(),XmlDay->Children.end(),RecordLessThan);
+        //qSort(XmlDay->Children.begin(),XmlDay->Children.end(),RecordLessThan);//假定存储前已按顺序排好
         Day=Day.nextSiblingElement("Day");
         XmlRoot.DaySerial.append(XmlDay);
     }
@@ -58,7 +59,7 @@ void RecordGetAndPost::RecordReadFromFile(globeset globe)
     return;
 }
 
-void RecordGetAndPost::RecordAdd(globeset globe)
+void RecordGetAndPost::RecordAdd()//待添加的记录
 {
     /*****************************************
      *函数逻辑
@@ -94,13 +95,13 @@ void RecordGetAndPost::RecordAdd(globeset globe)
      *                                  • 全新记录
      *                                      • 不必检测LastThing
      ****************************************/
-    QFile   XmlReader("./ini/RecXml.xml");//读取初步转换后的短信记录
+    QFile   XmlReader(globe->RecPos);//读取初步转换后的短信记录
     XmlReader.open(QIODevice::ReadOnly);
     QDomDocument    XML_Doc;
     XML_Doc.setContent(&XmlReader);
     QDomElement     Record;
     QDomElement     Node;
-    bool     RecordSerialNumber=0;//标记先后顺序，便于计算间隔时间//存疑
+    bool            RecordSerialNumber=0;//标记先后顺序，便于计算间隔时间//存疑
     Record          =   XML_Doc.firstChildElement("root");
     Record          =   Record.firstChildElement("Record");
     RecordItem      *LRecord=NULL;
@@ -130,32 +131,34 @@ void RecordGetAndPost::RecordAdd(globeset globe)
         Node                         =      Record.firstChildElement("Time");
         ThisRecord->Time             =      Node.text();
         Node                         =      Record.firstChildElement("Body");
-        ThisRecord->Thing            =      Node.firstChildElement("NextThing").text().trimmed();
+        ThisRecord->intDate          =      globe->STLDate.daysTo(QDate::fromString(ThisRecord->Date,"yyyy-MM-dd"));
+        ThisRecord->intTime          =      globe->STLTime.secsTo(QTime::fromString(ThisRecord->Time,"hh:mm"))/60;
+        ThisRecord->Div              =      ThisRecord->intDate*10000   +   ThisRecord->intTime;
         qDebug()<<"ThisRecord div = "<<ThisRecord->ReturnDiv();
-        if(CheckDuplicate.contains(ThisRecord->ReturnDiv()))
+        if(CheckDuplicate.contains(ThisRecord->Div))
         {
             Record                       =      Record.nextSiblingElement("Record");
             continue;
         }
+        ThisRecord->Thing            =      Node.firstChildElement("NextThing").text().trimmed();
         ThisRecord->ThingRem         =      Node.firstChildElement("NextThingRemember").text();
-        ThisRecord->intDate          =      globe.STLDate.daysTo(QDate::fromString(ThisRecord->Date,"yyyy-MM-dd"));
-        ThisRecord->intTime          =      globe.STLTime.secsTo(QTime::fromString(ThisRecord->Time,"hh:mm"))/60;
         LastDay                      =      NewDay;
         NewDay                       =      XmlRoot.findDayItem(0,XmlRoot.DaySerial.count()-1,ThisRecord->intDate);
-        if(LastDay!=NewDay&&LastDay!=NULL)//更新日期时对前一日期进行排序
+        if(LastDay!=NewDay&&LastDay!=NULL)//更新日期时对前一日期进行排序//&&不必要，应设法取消
         {
             qSort(LastDay->Children.begin(),LastDay->Children.end(),RecordLessThan);
         }
         if(NewDay!=NULL)
         {
             Node                     =      Node.firstChildElement("LastThing");
-                int     i=NewDay->Children.count()-1;
-                for(;i>=0&&NewDay->Children[i]->intTime>ThisRecord->intTime;i--)//原初：第一个大于iniTime的值的前一个位置//修改：第一个小于iniTime的位置//影响速度，可以直接用last进行处理//i>=0必须要放到最前面，要不直接数组越界
-                {
-
-                }
-                if(i>=0)
-                {
+            int     i=NewDay->Children.count();
+            for(;i>0&&NewDay->Children[i-1]->intTime>ThisRecord->intTime;i--)//原初：第一个大于iniTime的值的前一个位置//修改：第一个小于iniTime的位置//影响速度，可以直接用last进行处理//i>=0必须要放到最前面，要不直接数组越界
+            {
+                qDebug()<<"DayNumber ="<<i;//检测效率
+            }
+            if(i>0)
+            {
+                i--;
                 LastRecord=NewDay->Children[i];
                 LastRecord->Minute    =ThisRecord->intTime-LastRecord->intTime;
                 if(Node.text().size()!=0)
@@ -176,48 +179,48 @@ void RecordGetAndPost::RecordAdd(globeset globe)
                         }
 
                     }
-                        LastRecord->Thing      =Node.text();
+                    LastRecord->Thing      =Node.text();
                 }
                 NewDay->Children.insert(i+1,ThisRecord);
+            }
+            else
+            {
+                NewDay->Children.insert(0,ThisRecord);//出现这种情况一般都是故障了
+                ThisRecord->Minute=NewDay->Children[1]->intTime-ThisRecord->intTime;
+                LastDay                  =       XmlRoot.findDayItem(0,XmlRoot.DaySerial.count()-1,NewDay->DayNumber-1);
+                if(LastDay==NULL)
+                {
+                    Record                       =      Record.nextSiblingElement("Record");
+                    continue;
                 }
                 else
                 {
-                    NewDay->Children.insert(0,ThisRecord);//出现这种情况一般都是故障了
-                    ThisRecord->Minute=NewDay->Children[1]->intTime-ThisRecord->intTime;
-                    LastDay                  =       XmlRoot.findDayItem(0,XmlRoot.DaySerial.count()-1,NewDay->DayNumber-1);
-                    if(LastDay==NULL)
+                    LastRecord=LastDay->Children.last();
+                    LastRecord->Minute           =      ThisRecord->intTime+24*60-LastRecord->intTime;
+                    Node                     =       Node.firstChildElement("LastThing");
+                    if(Node.text().size()!=0)
                     {
-                        Record                       =      Record.nextSiblingElement("Record");
-                        continue;
-                    }
-                    else
-                    {
-                        LastRecord=LastDay->Children.last();
-                        LastRecord->Minute           =      ThisRecord->intTime+24*60-LastRecord->intTime;
-                        Node                     =       Node.firstChildElement("LastThing");
-                        if(Node.text().size()!=0)
+                        if(LastRecord->ThingRem.length())
                         {
-                            if(LastRecord->ThingRem.length())
+                            LastRecord->ThingRem   =Node.nextSiblingElement("LastThingRemember").text()+QObject::trUtf8("被覆盖的记录 ： ")+LastRecord->Thing+QObject::trUtf8("记录备注 ： ")+LastRecord->ThingRem;
+                        }
+                        else
+                        {
+                            if(LastRecord->Thing.length())
                             {
-                                LastRecord->ThingRem   =Node.nextSiblingElement("LastThingRemember").text()+QObject::trUtf8("被覆盖的记录 ： ")+LastRecord->Thing+QObject::trUtf8("记录备注 ： ")+LastRecord->ThingRem;
+                                LastRecord->ThingRem   =Node.nextSiblingElement("LastThingRemember").text()+QObject::trUtf8("被覆盖的记录 ： ")+LastRecord->Thing;
                             }
                             else
                             {
-                                if(LastRecord->Thing.length())
-                                {
-                                    LastRecord->ThingRem   =Node.nextSiblingElement("LastThingRemember").text()+QObject::trUtf8("被覆盖的记录 ： ")+LastRecord->Thing;
-                                }
-                                else
-                                {
-                                    LastRecord->ThingRem   =Node.nextSiblingElement("LastThingRemember").text();
-                                }
-
+                                LastRecord->ThingRem   =Node.nextSiblingElement("LastThingRemember").text();
                             }
-                                LastRecord->Thing      =Node.text();
-                        }
-                    }
 
+                        }
+                        LastRecord->Thing      =Node.text();
+                    }
                 }
+
+            }
 
         }
         else
@@ -225,8 +228,11 @@ void RecordGetAndPost::RecordAdd(globeset globe)
             NewDay                   =       new DayItem;
             NewDay->DayNumber        =       ThisRecord->intDate;
             NewDay->Children.append(ThisRecord);
-            XmlRoot.DaySerial.append(NewDay);
-            qSort(XmlRoot.DaySerial.begin(),XmlRoot.DaySerial.end(),DayLessThan);//添加完新日期之后进行排序，可以进一步改进，改成插入模式,至少能再快两个数量级
+            int i   =   XmlRoot.DaySerial.size();
+            for(;i>0&&XmlRoot.DaySerial[i-1]->DayNumber>NewDay->DayNumber;i--)//第一个小于DayNumber的位置
+            {}
+            XmlRoot.DaySerial.insert(i,NewDay);
+            //qSort(XmlRoot.DaySerial.begin(),XmlRoot.DaySerial.end(),DayLessThan);//添加完新日期之后进行排序，可以进一步改进，改成插入模式,至少能再快两个数量级
             LastDay                  =       XmlRoot.findDayItem(0,XmlRoot.DaySerial.count()-1,NewDay->DayNumber-1);
             if(LastDay!=NULL)
             {
@@ -252,7 +258,7 @@ void RecordGetAndPost::RecordAdd(globeset globe)
                         }
 
                     }
-                        LastRecord->Thing      =Node.text();
+                    LastRecord->Thing      =Node.text();
                 }
             }
             else
@@ -261,18 +267,19 @@ void RecordGetAndPost::RecordAdd(globeset globe)
                 continue;
             }
         }
+        NewAddRecord.append(LastRecord);
         Record                       =      Record.nextSiblingElement("Record");
     }
+    qSort(XmlRoot.DaySerial.begin(),XmlRoot.DaySerial.end(),DayLessThan);//临末，安全起见，排个序
     XmlReader.close();
-
 }
 
-void RecordGetAndPost::RecordSave(globeset globe)
+void RecordGetAndPost::writeXmlRecord()
 {
-    QFile           Xml_txt(globe.RecordGetAndPost);//转换
-    Xml_txt.open(QIODevice::ReadWrite);
-    Xml_txt.resize(0);
-    QTextStream     Xml_Text(&Xml_txt);
+    QFile           Xml_Maintxt(globe->RecordGetAndPostPos);//转换
+    Xml_Maintxt.open(QIODevice::ReadWrite);
+    Xml_Maintxt.resize(0);
+    QTextStream     Xml_Text(&Xml_Maintxt);
     QDomDocument    XML_Doc;
     QDomProcessingInstruction   Instruction;
     QDomElement     root;
@@ -330,7 +337,55 @@ void RecordGetAndPost::RecordSave(globeset globe)
     }
     XML_Doc.appendChild(root);
     XML_Doc.save(Xml_Text,4);
-    Xml_txt.close();
+    Xml_Maintxt.close();
+    /****************主记录*******************************/
+    /****************新加记录*****************************/
+    QFile           Xml_NewAddtxt(globe->NewAddRecordPos);//转换
+    Xml_NewAddtxt.open(QIODevice::ReadWrite);
+    Xml_NewAddtxt.resize(0);
+    QTextStream     Xml_NewAddText(&Xml_NewAddtxt);
+    QDomDocument    XML_NewAddDoc;
+    Instruction     =   XML_NewAddDoc.createProcessingInstruction("xml","version=\"1.0\" encoding = \"UTF-8\"");
+    XML_NewAddDoc.appendChild(Instruction);
+    root            =   XML_NewAddDoc.createElement("root");
+    RecordItem      *Record_buf;
+    for(int i=0;i<NewAddRecord.size();i++)
+    {
+        Record_buf  =   NewAddRecord[i];
+        Record      =   XML_NewAddDoc.createElement("Record");
+        Node        =   XML_NewAddDoc.createElement("Date");
+        Node.setAttribute("intDate",Record_buf->intDate);
+        Text        =   XML_NewAddDoc.createTextNode(Record_buf->Date);
+        Node.appendChild(Text);
+        Record.appendChild(Node);
+
+        Node        =   XML_NewAddDoc.createElement("Time");
+        Node.setAttribute("intTime",Record_buf->intTime);
+        Text        =   XML_NewAddDoc.createTextNode(Record_buf->Time);
+        Node.appendChild(Text);
+        Record.appendChild(Node);
+
+        Node        =   XML_NewAddDoc.createElement("Minute");
+        QString         Minute_Buf;
+        Minute_Buf.setNum(Record_buf->Minute);
+        Text        =   XML_NewAddDoc.createTextNode(Minute_Buf);//&&
+        Node.appendChild(Text);
+        Record.appendChild(Node);
+
+        Node        =   XML_NewAddDoc.createElement("Thing");
+        Text        =   XML_NewAddDoc.createTextNode(Record_buf->Thing);
+        Node.appendChild(Text);
+        Record.appendChild(Node);
+
+        Node        =   XML_NewAddDoc.createElement("ThingRem");
+        Text        =   XML_NewAddDoc.createTextNode(Record_buf->ThingRem);
+        Node.appendChild(Text);
+        Record.appendChild(Node);
+        root.appendChild(Record);
+    }
+    XML_NewAddDoc.appendChild(root);
+    XML_NewAddDoc.save(Xml_NewAddText,4);
+    return;
 }
 
 bool RecordLessThan(RecordItem* first, RecordItem* next)
@@ -389,7 +444,6 @@ RecordItem::RecordItem()//初始化
     this->intDate=0;
     this->intTime=0;
     this->Minute=-1;
-    this->Serial_Number=0;
     this->Thing="";
     this->ThingRem="";
     this->Time="";

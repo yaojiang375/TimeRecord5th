@@ -2,9 +2,10 @@
 
 
 
-SmsReader::SmsReader(globeset &globe)
+SmsReader::SmsReader(globeset *globeread)
 {
-    QFile csvRead(globe.SmsPos);
+    globe       =       globeread;
+    QFile csvRead(globe->SmsPos);
     qDebug()<<"csv:"<<csvRead.isOpen();//qdebug
     csvRead.open(QIODevice::ReadOnly);
     QTextStream textRead(&csvRead);
@@ -13,10 +14,9 @@ SmsReader::SmsReader(globeset &globe)
     LastPos     = Reader.indexOf("sms,submit,");
 }
 
-bool SmsReader::Read(globeset &globe)
+bool SmsReader::Read()
 {
-    GTDxml        RecXml;
-
+    Time=clock();
     while(LastPos != -1)
     {
         LastPos = Reader.indexOf(",,",LastPos);
@@ -29,100 +29,133 @@ bool SmsReader::Read(globeset &globe)
         qDebug()<<"Date= "+_Date.toString("yyyy-MM-dd");
         qDebug()<<"Buffer = "+Buffer;//Debug
         /******************************************************/
-        if(Buffer[0]==globe.RecFlag[0])//globe待改成指针模式
+        if(Buffer[0]==globe->RecFlag[0])//globe待改成指针模式
         {
             Buffer.remove(0,1);
-            while(Buffer[0]==globe.AddFlag[0])
+            while(Buffer[0]==globe->AddFlag[0])
             {
-                CommaLastRecord=CommaNextRecord=CommaLastRemember=CommaNextRemember="";
                 CommaContent="";//清空缓存
                 Buffer.remove(0,1);
-                if(Buffer.indexOf(globe.AddEndFlag)!=-1)
-                {
-                    CommaContent = Buffer.mid(0,Buffer.indexOf(globe.AddEndFlag));
-                    if(CountMidThing(CommaContent,globe)==1)//保证，与！间只有一条记录
+                    CommaContent = Buffer.mid(0,Buffer.indexOf(globe->AddEndFlag));
+                    Buffer.remove(0,Buffer.indexOf(globe->AddEndFlag)+1);
+                    if(CommaContent.length()<5)
                     {
-                        Buffer.remove(0,Buffer.indexOf(globe.AddEndFlag)+1);
-                        if(CommaContent.length()<5)
-                        {
-                           //报错，throw一个错误
-                        }
-                        _CommaTime.setHMS(CommaContent.mid(0,2).toInt(),CommaContent.mid(3,2).toInt(),0);
-                        if(_CommaTime > _Time)
-                        {
-                            _CommaDate = _Date.addDays(-1);// 返回数字之后的日期，返回之前的日期用负数
-                        }
-                        else
-                        {
-                            _CommaDate = _Date;
-                        }
-                        CommaContent.remove(0,5);
-                        ContentDeal(CommaContent,CommaLastRecord,CommaNextRecord,CommaLastRemember,CommaNextRemember,globe);
-                        RecXml.DomWrite(_CommaDate.toString("yyyy-MM-dd"),_CommaTime.toString("hh:mm"),CommaLastRecord,CommaLastRemember,CommaNextRecord,CommaNextRemember,FALSE);
+                        exit(1);//直接强制退出，当然，肯定不会有这种情况出现的
                     }
-                }
-                else
-                {
-                    globe.ReadWrong=TRUE;
-                }
-
+                    _CommaTime.setHMS(CommaContent.mid(0,2).toInt(),CommaContent.mid(3,2).toInt(),0);
+                    if(_CommaTime > _Time)
+                    {
+                        _CommaDate = _Date.addDays(-1);// 返回数字之后的日期，返回之前的日期用负数
+                    }
+                    else
+                    {
+                        _CommaDate = _Date;
+                    }
+                    CommaContent.remove(0,5);
+                    ContentDeal(CommaContent,_Date.toString("yyyy-MM-dd"),_Time.toString("hh:mm"),globe);
             }
-            if(CountMidThing(Buffer,globe)!=1)
-            {
-                globe.ReadWrong=TRUE;
-            }
-                ContentDeal(Buffer,LastRecord,NextRecord,LastRemember,NextRemember,globe);
-                RecXml.DomWrite(_Date.toString("yyyy-MM-dd"),_Time.toString("hh:mm"),LastRecord,LastRemember,NextRecord,NextRemember,globe.ReadWrong);
-                globe.ReadWrong=FALSE;
+            ContentDeal(Buffer,_Date.toString("yyyy-MM-dd"),_Time.toString("hh:mm"),globe);
         }
-
-
         /******************************************************/
-
         LastPos = Reader.indexOf("sms,submit,",NextPos);
-        LastRecord=NextRecord=LastRemember=NextRemember="";//归零；
-
-
     }
-    RecXml.XmlSave("./ini/RecXml.xml");//读取后的Sms记录（此时尚未转换，转换后也叫这个名字）
+    qDebug()<<"Time = "<<clock()-Time;//10061ms
+    Time=clock();
+    writeXmlRecord();
+    qDebug()<<"Time = "<<clock()-Time;//12878ms
     return TRUE;
 }
 
-void SmsReader::ContentDeal(QString &Content, QString &LastRecord, QString &NextRecord, QString &LastRemember, QString &NextRemember,globeset &globe)
+void SmsReader::writeXmlRecord()
 {
+    QFile           Xml_txt(globe->RecPos);//转换
+    Xml_txt.open(QIODevice::ReadWrite);
+    Xml_txt.resize(0);
+    QTextStream     Xml_Text(&Xml_txt);
+    QDomDocument    XML_Doc;
+    QDomProcessingInstruction   Instruction;
+    QDomElement     root;
 
-    QString     Buffer;
-    Buffer  =   Content.mid(0,Content.indexOf(globe.MidThing));
-    if(Buffer.indexOf(globe.LeftRem)!=-1&&Buffer.indexOf(globe.ReghtRem)!=-1)//若左右标记同时存在，则认为中间内容为备注内容。
+    QDomElement     Record;
+    QDomElement     Date;
+    QDomElement     Time;
+    QDomElement     Body;
+    QDomElement     LastThing;
+    QDomElement     LastThingRemember;
+    QDomElement     NextThing;
+    QDomElement     NextThingRemember;
+    QDomText        Text;
+    Instruction     =       XML_Doc.createProcessingInstruction("xml","version=\"1.0\" encoding = \"UTF-8\"");
+    XML_Doc.appendChild(Instruction);
+    root            =       XML_Doc.createElement("root");
+    int VectorSize=RecordFromCsv.size();
+    for(int i =0;i<VectorSize;i++)
     {
-        LastRemember = Buffer.mid(Buffer.indexOf(globe.LeftRem)+1,Buffer.indexOf(globe.ReghtRem)-Buffer.indexOf(globe.LeftRem)-1);
-        Buffer.remove(Buffer.indexOf(globe.LeftRem),Buffer.indexOf(globe.ReghtRem)-Buffer.indexOf(globe.LeftRem)+1);
+        Record              =       XML_Doc.createElement("Record");
+        Date                =       XML_Doc.createElement("Date");
+        Time                =       XML_Doc.createElement("Time");
+        Body                =       XML_Doc.createElement("Body");
+        LastThing           =       XML_Doc.createElement("LastThing");
+        LastThingRemember   =       XML_Doc.createElement("LastThingRemember");
+        NextThingRemember   =       XML_Doc.createElement("NextThingRemember");
+        NextThing           =       XML_Doc.createElement("NextThing");
+
+        RecordFromCsv[i]->Debug();
+        Text                =       XML_Doc.createTextNode(RecordFromCsv[i]->Date);
+        Date.appendChild(Text);
+        Record.appendChild(Date);
+
+        Text                =       XML_Doc.createTextNode(RecordFromCsv[i]->Time);
+        Time.appendChild(Text);
+        Record.appendChild(Time);
+
+        Text                =       XML_Doc.createTextNode(RecordFromCsv[i]->LastThing);
+        LastThing.appendChild(Text);
+        Body.appendChild(LastThing);
+
+        Text                =       XML_Doc.createTextNode(RecordFromCsv[i]->LastThingRem);
+        LastThingRemember.appendChild(Text);
+        Body.appendChild(LastThingRemember);
+
+        Text                =       XML_Doc.createTextNode(RecordFromCsv[i]->NextThing);
+        NextThing.appendChild(Text);
+        Body.appendChild(NextThing);
+
+        Text                =       XML_Doc.createTextNode(RecordFromCsv[i]->NextThingRem);
+        NextThingRemember.appendChild(Text);
+        Body.appendChild(NextThingRemember);
+
+        Record.appendChild(Body);
+
+        root.appendChild(Record);
     }
-    LastRecord = Buffer;
-    Buffer  =Content.mid(Content.indexOf(globe.MidThing)+1,-1);
-    if(Buffer.indexOf(globe.LeftRem)!=-1&&Buffer.indexOf(globe.ReghtRem)!=-1)//若左右标记同时存在，则认为中间内容为备注内容。
-    {
-        NextRemember = Buffer.mid(Buffer.indexOf(globe.LeftRem)+1,Buffer.indexOf(globe.ReghtRem)-Buffer.indexOf(globe.LeftRem)-1);
-        Buffer.remove(Buffer.indexOf(globe.LeftRem),Buffer.indexOf(globe.ReghtRem)-Buffer.indexOf(globe.LeftRem)+1);
-    }
-    NextRecord = Buffer;
+    XML_Doc.appendChild(root);
+    XML_Doc.save(Xml_Text,4);
+    Xml_txt.close();
     return;
 }
 
-int SmsReader::CountMidThing(QString Content,globeset &globe)
+void SmsReader::ContentDeal(QString &Content,QString Date,QString Time,globeset *globe)
 {
 
-        int Pos=0;
-        int Count=0;
-        while(Content.indexOf(globe.MidThing,Pos)!=-1)
-        {
-            qDebug()<<Content;
-            qDebug()<<Content.indexOf(globe.MidThing,Pos);
-            Pos=Content.indexOf(globe.MidThing,Pos)+1;
-            Count++;
-        }
-        return Count;
-
+    QString     Buffer;
+    BaseRecord* NewRecord=new BaseRecord;
+    NewRecord->Date=Date;
+    NewRecord->Time=Time;
+    Buffer  =   Content.mid(0,Content.indexOf(globe->MidThing));
+    if(Buffer.indexOf(globe->LeftRem)!=-1&&Buffer.indexOf(globe->ReghtRem)!=-1)//若左右标记同时存在，则认为中间内容为备注内容。
+    {
+        NewRecord->LastThingRem = Buffer.mid(Buffer.indexOf(globe->LeftRem)+1,Buffer.indexOf(globe->ReghtRem)-Buffer.indexOf(globe->LeftRem)-1);
+        Buffer.remove(Buffer.indexOf(globe->LeftRem),Buffer.indexOf(globe->ReghtRem)-Buffer.indexOf(globe->LeftRem)+1);
+    }
+    NewRecord->LastThing = Buffer;
+    Buffer  =Content.mid(Content.indexOf(globe->MidThing)+1,-1);
+    if(Buffer.indexOf(globe->LeftRem)!=-1&&Buffer.indexOf(globe->ReghtRem)!=-1)//若左右标记同时存在，则认为中间内容为备注内容。
+    {
+        NewRecord->NextThingRem= Buffer.mid(Buffer.indexOf(globe->LeftRem)+1,Buffer.indexOf(globe->ReghtRem)-Buffer.indexOf(globe->LeftRem)-1);
+        Buffer.remove(Buffer.indexOf(globe->LeftRem),Buffer.indexOf(globe->ReghtRem)-Buffer.indexOf(globe->LeftRem)+1);
+    }
+    NewRecord->NextThing = Buffer;
+    RecordFromCsv.append(NewRecord);
+    return;
 }
-
-

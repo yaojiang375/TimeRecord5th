@@ -1,21 +1,40 @@
 #ifndef SMSREADER_H
 #define SMSREADER_H
 #include "globe.h"
-#include "GTDxml.h"
 
 #include <QFile>
 #include <QTextStream>
 #include <QString>
 #include <QDateTime>
 #include <QVector>
-
-
+#include <QtXml>
+#include <ctime>
+class BaseRecord
+{
+public :
+    QString    Date;
+    QString    Time;
+    QString    LastThing;
+    QString    LastThingRem;
+    QString    NextThing;
+    QString    NextThingRem;
+    void Debug()
+    {
+        qDebug()<<Date;
+        qDebug()<<Time;
+        qDebug()<<LastThing;
+        qDebug()<<LastThingRem;
+        qDebug()<<NextThing;
+        qDebug()<<NextThingRem;
+        return;
+    }
+};
 
 class SmsReader
 {
 public:
-    SmsReader(globeset &globe);
-    bool Read(globeset &globe);
+    SmsReader(globeset *globe);
+    bool Read();
 
 private:
 
@@ -26,17 +45,16 @@ private:
     QString     Reader;
 
     QString     Buffer;
-    QString          LastRecord,     NextRecord,     LastRemember,     NextRemember,
-                CommaLastRecord,CommaNextRecord,CommaLastRemember,CommaNextRemember;
     QString     CommaContent;
     QString     ReadItLatter;//待办记事
     int         DayDate,TimeDate;
     int         LastPos,NextPos;//
 
-    void ContentDeal(QString &Content,QString &LastRecord,QString &NextRecord,QString &LastRemember,QString &NextRemember,globeset &globe);
-    int  CountMidThing(QString  Content,globeset &globe);//如果数据中有不等于一个的事件分隔符的话，则存在错误
-
-
+    void writeXmlRecord();
+    void ContentDeal(QString &Content, QString Date, QString Time, globeset *globe);
+    QVector<BaseRecord*>    RecordFromCsv;
+    globeset*   globe;
+    clock_t     Time;
 };
 
 #endif // SMSREADER_H

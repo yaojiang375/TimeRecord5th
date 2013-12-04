@@ -16,6 +16,8 @@ ReadRecord::ReadRecord(globeset *globek,QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ReadRecord)
 {
+    test    =   true;
+    Time    =   clock();
     QIcon       icon("./ini/www.ico");
     QWidget::setWindowIcon(icon);
     ui->setupUi(this);
@@ -25,8 +27,8 @@ ReadRecord::ReadRecord(globeset *globek,QWidget *parent) :
     QTableWidget    *table=ui->tableWidget;
     table->setColumnCount(7);
     table->clear();
-    SmsReader   outside_smsreader(*globe);
-    outside_smsreader.Read(*globe);//处理短信记录
+    SmsReader   outside_smsreader(globe);
+    outside_smsreader.Read();//处理短信记录
     QStringList         Header;
     Header.append(trUtf8("错误标记"));
     Header.append(trUtf8("日期"));
@@ -40,8 +42,9 @@ ReadRecord::ReadRecord(globeset *globek,QWidget *parent) :
     table->setColumnWidth(1,90);
     table->setColumnWidth(2,50);
 
-
-    QFile   _TaskFile("./ini/RecXml.xml");
+    qDebug()<<"Time = "<<clock()-Time;//此步花费9639ms
+    Time    =   clock();
+    QFile   _TaskFile(globe->RecPos);
     _TaskFile.open(QIODevice::ReadOnly);
      QDomDocument    doc;
      doc.setContent(&_TaskFile);
@@ -69,7 +72,16 @@ ReadRecord::ReadRecord(globeset *globek,QWidget *parent) :
          i++;
         Record=Record.nextSibling();
      }
+     qDebug()<<"Time = "<<clock()-Time;
+     Time    =   clock();//此步花费5499ms
+     MainRecord =    new RecordGetAndPost(globe);
+     qDebug()<<"Time = "<<clock()-Time;
+     Time    =   clock();
+     MainRecord->readXmlRecord();//一次就够
+     qDebug()<<"Time = "<<clock()-Time;
+     Time    =   clock();
      RecordShow();
+
 }
 
 ReadRecord::~ReadRecord()
@@ -80,8 +92,8 @@ ReadRecord::~ReadRecord()
 
 void ReadRecord::RecordShow()
 {
-    SmsReader   outside_smsreader(*globe);
-    outside_smsreader.Read(*globe);//处理短信记录
+    SmsReader   outside_smsreader(globe);
+    outside_smsreader.Read();//处理短信记录
     QTableWidget    *table=ui->tableWidget;
     table->clear();
     QStringList         Header;
@@ -99,7 +111,7 @@ void ReadRecord::RecordShow()
     table->setColumnWidth(2,50);
 
 
-    QFile   _TaskFile("./ini/RecXml.xml");
+    QFile   _TaskFile(globe->RecPos);
     _TaskFile.open(QIODevice::ReadOnly);
      QDomDocument    doc;
      doc.setContent(&_TaskFile);
@@ -107,7 +119,7 @@ void ReadRecord::RecordShow()
      QDomNode                        Record;
      root       =doc.firstChildElement("root");
      Record     =root.firstChildElement("Record");
-
+     Time    =   clock();
      table->setRowCount(root.childNodes().count());//设定行数
      int i=0;//序列号
      while(!Record.isNull())
@@ -127,6 +139,8 @@ void ReadRecord::RecordShow()
          i++;
         Record=Record.nextSibling();
      }
+     qDebug()<<"Time = "<<clock()-Time;
+     Time    =   clock();//此步花费2603ms
      //ui->AddToRecordDB->show();
 }
 
@@ -134,13 +148,20 @@ void ReadRecord::RecordShow()
 
 void ReadRecord::on_AddToRecordDB_clicked()
 {
-    RecordGetAndPost a;
-    a.RecordReadFromFile(*globe);
-    a.RecordAdd(*globe);
-    a.RecordSave(*globe);
+    if(test)
+    {
+    qDebug()<<"Time = "<<clock()-Time;
+    Time    =   clock();//此步花费5433ms//无文件//当有打开的文件时花费44818ms//考虑换用std：：string与std：：Set
+    MainRecord->RecordAdd();
+    qDebug()<<"Time = "<<clock()-Time;
+    Time    =   clock();//在有打开文件时此步话费10828ms
+    MainRecord->writeXmlRecord();
+    qDebug()<<"Time = "<<clock()-Time;
+    Time    =   clock();//此步花费7875ms//在有打开文件时此步花费21730ms
     //ui->ShowRecordDB->show();
+    }
+    test=false;
 }
-
 void ReadRecord::on_ShowRecordDB_clicked()
 {
 

@@ -9,8 +9,8 @@
 class globeset
 {
 public:
-    QString SmsPos;
-    bool    ReadWrong;
+
+    /*****Flag********/
     QString RILFlag;
     QString RecFlag;
     QString AddFlag;
@@ -21,18 +21,16 @@ public:
     QDate   STLDate;//标准时间，1970-01-01_00：00
     QTime   STLTime;//标准时间00：00
 
-
+    /*****Pos*********/
+    QString SmsPos;
     QString iniPos;
-    QString NameConnecrXmlPos;
-    QString NameWithSortNumReturnRecordXmlPOS;
-    QString RecordGetAndPost;
-    QString GetAndPostPos;
-    QString SortTreePos;
-
+    QString RecordGetAndPostPos;
+    QString RecPos;//初次转换后短信文件位置
+    QString NewAddRecordPos;//新加入记录
+    QString	SortIDTreePos;  //分类记录
     globeset()
     {
         SmsPos      = "./ini/1.csv";
-        ReadWrong   =FALSE;
         RILFlag     ="！";
         RecFlag     ="。";
         AddFlag     ="，";
@@ -43,11 +41,10 @@ public:
         iniPos      ="./ini/1.ini";//Qdebug
         STLDate.setDate(2010,01,01);
         STLTime.setHMS(0,0,0);
-        NameConnecrXmlPos ="./ini/NameConnecrXmlPos.xml";
-        NameWithSortNumReturnRecordXmlPOS="./ini/NameWithSortNumReturnRecordXmlPOS.xml";
-        RecordGetAndPost="./ini/RecordGetAndPost.xml";
-        GetAndPostPos   ="./ini/GetAndPost.xml";
-        SortTreePos        ="./ini/SortTree.xml";
+        RecordGetAndPostPos ="./ini/RecordGetAndPost.xml";
+        NewAddRecordPos     ="./ini/NewAddRecordPos.xml";
+        SortIDTreePos       ="./ini/SortIDTree.xml";
+        RecPos              ="./ini/RecPos.xml";
     }
     void read()
     {
@@ -69,7 +66,6 @@ public:
     void Show()
     {
         qDebug()<<"SmsPos="     <<SmsPos    <<'\n'
-               <<"ReadWrong="   <<ReadWrong <<'\n'
                 <<"RILFlag="    <<RILFlag   <<'\n'
                 <<"RecFlag="    <<RecFlag   <<'\n'
                 <<"AddFlag="    <<AddFlag   <<'\n'
@@ -77,8 +73,7 @@ public:
                 <<"ReghtRem="   <<ReghtRem  <<'\n'
                 <<"LeftRem="    <<LeftRem   <<'\n'
                 <<"MidThing="   <<MidThing  <<'\n'
-                <<"iniPos="     <<iniPos    <<'\n'
-                <<"NameConnecrXmlPos=" <<NameConnecrXmlPos <<'\n';
+                <<"iniPos="     <<iniPos    <<'\n';
               /*  <<"=" << <<'\n'
                 <<"=" << <<'\n'
                 <<"=" << <<'\n'  */
@@ -87,20 +82,21 @@ public:
     {
         this->AddEndFlag        =   a.AddEndFlag;
         this->AddFlag           =   a.AddFlag;
-        this->GetAndPostPos     =   a.GetAndPostPos;
-        this->iniPos            =   a.iniPos;
         this->LeftRem           =   a.LeftRem;
-        this->MidThing          =   a.MidThing;
-        this->NameConnecrXmlPos =   a.NameConnecrXmlPos;
-        this->NameWithSortNumReturnRecordXmlPOS=a.NameWithSortNumReturnRecordXmlPOS;
-        this->ReadWrong         =   a.ReadWrong;
-        this->RecFlag           =   a.RecFlag;
-        this->RecordGetAndPost  =   a.RecordGetAndPost;
         this->ReghtRem          =   a.ReghtRem;
+        this->MidThing          =   a.MidThing;
+        this->RecFlag           =   a.RecFlag;
         this->RILFlag           =   a.RILFlag;
-        this->SmsPos            =   a.SmsPos;
+
         this->STLDate           =   a.STLDate;
         this->STLTime           =   a.STLTime;
+
+        this->SortIDTreePos     =   a.SortIDTreePos;
+        this->iniPos            =   a.iniPos;
+        this->NewAddRecordPos   =   a.NewAddRecordPos;
+        this->RecordGetAndPostPos=  a.RecordGetAndPostPos;
+        this->SmsPos            =   a.SmsPos;
+        this->RecPos            =   a.RecPos ;
         return;
     }
 };

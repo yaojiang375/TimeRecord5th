@@ -5,6 +5,7 @@
 #include <QWidget>
 #include "recordgetandpost.h"
 #include "mainrecorddb.h"
+#include <time.h>
 namespace Ui {
 class ReadRecord;
 }
@@ -31,7 +32,10 @@ private slots:
 private:
     void insertTable();
     void RecordShow();
+    clock_t Time;
     Ui::ReadRecord *ui;
+    bool             test;//测试，用于避免多次点击加入总记录
+    RecordGetAndPost *MainRecord;
     globeset *globe;
 };
 

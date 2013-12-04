@@ -19,7 +19,6 @@ SOURCES += main.cpp\
     form.cpp \
     content_check.cpp \
     smsreader.cpp \
-    GTDxml.cpp \
     recordgetandpost.cpp \
     mainrecorddb.cpp \
     sorttherecordnamelikedir.cpp
@@ -30,7 +29,6 @@ HEADERS  += \
     globe.h \
     content_check.h \
     smsreader.h \
-    GTDxml.h \
     recordgetandpost.h \
     mainrecorddb.h \
     sorttherecordnamelikedir.h

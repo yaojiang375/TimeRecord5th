@@ -26,7 +26,6 @@ class RecordItem
 {
 public:
     RecordItem();
-    int        Serial_Number;//Record序号
     QString    Date;
     int        intDate;
     QString    Time;
@@ -34,6 +33,7 @@ public:
     int        Minute;
     QString    Thing;
     QString    ThingRem;
+    int        Div;//记录主键
     QString ReturnDiv(void)
     {
         return  Date+Time;//汉字不靠谱。。。同样的数据能读出来不一样的结果。。。改用时间加日期作为主码
@@ -56,15 +56,15 @@ public:
 class RecordGetAndPost
 {
 public:
-    RecordGetAndPost();//记录总类，负责读取，返回，储存记录
-    void RecordReadFromFile(globeset globe);//读取RecordGetAndPost.Xml
-    void RecordAdd(globeset globe);//读取Rec.Xml（简单处理后的短信记录），与总库记录相比较，若为新加记录，则添加入总库中，同时将新添记录记录至./ini/GetAndPost.xml内
-    void RecordSave(globeset globe);//保存总库记录
+    RecordGetAndPost(globeset *readglobe);//记录总类，负责读取，返回，储存记录
+    void readXmlRecord();//读取RecordGetAndPost.Xml
+    void RecordAdd();//读取Rec.Xml（简单处理后的短信记录），与总库记录相比较，若为新加记录，则添加入总库中，同时将新添记录记录至./ini/GetAndPost.xml内
+    void writeXmlRecord();//保存总库记录
 private:
-    QSet<QString>   CheckDuplicate;
-    XMLRoot         XmlRoot;
-
-
+    globeset*                   globe;
+    QSet<int>                   CheckDuplicate;
+    XMLRoot                     XmlRoot;
+    QVector<RecordItem*>        NewAddRecord;//新添加的记录
 };
 bool RecordLessThan(RecordItem *first, RecordItem *next);//能否正常调用？
 bool DayLessThan(DayItem *first, DayItem *next);

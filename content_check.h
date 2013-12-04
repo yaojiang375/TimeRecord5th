@@ -2,6 +2,8 @@
 #define CONTENT_CHECK_H
 #include <QString>
 #include <globe.h>
+#include <string>//用STD重写
+#include <ctype.h>
 /*************************************************
  *错误代码：
  *
@@ -18,9 +20,9 @@ class Content_Check
 {
 public:
     Content_Check();
-    int check(globeset globe,QString content);
-    int STDCheck(globeset globe,QString content);
-    int AddCheck(globeset globe,QString content);
+    int check(globeset globe,std::string content);
+    int STDCheck(globeset globe,std::string content);
+    int AddCheck(globeset globe,std::string content);
 
 };
 

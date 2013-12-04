@@ -14,6 +14,8 @@
 #include <QNetworkReply>
 #include <QMessageBox>
 
+#include <time.h>
+
 #define  READLENGTH 9999
 /*******************************************
  *私有变量version为版本号
@@ -53,11 +55,11 @@ private:
     globeset            *globe;
     QList<int>          needfix;//记录需要修改的位置
     QString             readFile;
-    QList<QString>      ReadString;
+    QVector<QString>    ReadString;
     QString             judgebuf;
     QList<QString>          wrongstring;
 
-
+    clock_t                    Time;//消耗时间测试
     QString version;
     QString UpdateVersion;
     QString UpdateAdress;

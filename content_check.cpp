@@ -5,30 +5,30 @@ Content_Check::Content_Check()
 
 }
 
-int Content_Check::check(globeset globe, QString content)
+int Content_Check::check(globeset globe,std::string content)
 {
 
-        content.remove(0,1);
+        content.erase(0,1);
         if(content[0]==globe.AddFlag[0])
         {
-            content.remove(0,1);
+            content.erase(0,1);
             return AddCheck(globe,content);
         }
         else
         {
             return STDCheck(globe,content);
         }
-
-
 }
 
-int Content_Check::STDCheck(globeset globe, QString content)
+int Content_Check::STDCheck(globeset globe,std::string content)
 {
-    if(content.indexOf(globe.LeftRem)!=-1)//检测多余的备注符
+    std::string::size_type LeftPos =    content.find(globe.LeftRem.toStdString());
+    if(LeftPos!=std::string::npos)//检测多余的备注符
     {
-        if(content.indexOf(globe.ReghtRem)!=-1)
+        std::string::size_type RightPos =    content.find(globe.ReghtRem.toStdString());
+        if(RightPos !=std::string::npos)
         {
-            content.remove(content.indexOf(globe.LeftRem),content.indexOf(globe.ReghtRem)-content.indexOf(globe.LeftRem)+1);//右括号也要删掉
+            content.erase(LeftPos,LeftPos-RightPos+1);//右括号也要删掉
             return STDCheck(globe,content);
         }
         else
@@ -38,12 +38,13 @@ int Content_Check::STDCheck(globeset globe, QString content)
     }
     else
     {
-        if(content.indexOf(globe.MidThing)!=-1)
+        std::string::size_type MidThingPos=content.find(globe.MidThing.toStdString());
+        if(MidThingPos!=std::string::npos)
         {
-            content.remove(content.indexOf(globe.MidThing),1);
-            if(content.indexOf(globe.MidThing)!=-1)
+            content.erase(MidThingPos,1);
+            if(content.find(globe.MidThing.toStdString())!=std::string::npos)
             {
-                qDebug()<<"Wrong=3,"<<content;
+                //qDebug()<<"Wrong=3,"<<content;
                 return 3;//检测到多于一个『？』
             }
             else
@@ -58,23 +59,24 @@ int Content_Check::STDCheck(globeset globe, QString content)
     }
 }
 
-int Content_Check::AddCheck(globeset globe, QString content)
+int Content_Check::AddCheck(globeset globe,std::string content)
 {
-    if(content.indexOf(globe.AddEndFlag)!=-1)
+    std::string::size_type AddEndPos =content.find(globe.AddEndFlag.toStdString());
+    if(AddEndPos!=std::string::npos)
     {
-        QString a;
+        std::string a;
 
-        a=content.mid(0,content.indexOf(globe.AddEndFlag));
-        content.remove(0,a.length()+1);
-        qDebug()<<"a="<<a;
-        if(a[0].isNumber()&&a[1].isNumber()&&a[3].isNumber()&&a[4].isNumber()&&(!a[2].isNumber()))
+        a=content.substr(0,AddEndPos);
+        content.erase(0,a.length()+1);
+        //qDebug()<<"a="<<a;
+        if(isdigit(a[0])&&isdigit(a[1])&&isdigit(a[3])&&isdigit(a[4])&&(!isdigit(a[2])))
         {
-            a.remove(0,5);
+            a.erase(0,5);
             if(STDCheck(globe,a)==0)
             {
                 if(content.length()!=0)
                 {
-                    content.insert(0,globe.RecFlag);
+                    content.insert(0,globe.RecFlag.toStdString());
                     return check(globe,content);
                 }
                 else

@@ -4,6 +4,9 @@
 #include "sorttherecordnamelikedir.h"
 #include <QStandardItemModel>
 #include <QFileDialog>//导出为xml
+
+#include<time.h>
+
 MainRecordDB::MainRecordDB(globeset *globek,QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MainRecordDB)
@@ -453,7 +456,7 @@ void MainRecordDB::RecordShow()
      * <xml大杀器，高能慎入>
      *************************************************/
     ui->treeWidget->clear();
-    QFile wojiuluanqiminglezhadi(globe->RecordGetAndPost);
+    QFile wojiuluanqiminglezhadi(globe->RecordGetAndPostPos);
     wojiuluanqiminglezhadi.open(QIODevice::ReadOnly);
     QDomDocument    doc;
     doc.setContent(&wojiuluanqiminglezhadi);
